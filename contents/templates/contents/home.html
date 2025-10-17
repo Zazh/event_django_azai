@@ -12,8 +12,8 @@
         <div class="pt-[4.5rem]">
             <div class="text-center flex flex-col gap-3">
                 <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
-                <h1 class="h1 font-bold text-green-600">{{ hero.title }}</h1>
-                <h2 class="text-gray-500 md:text-lg">{{ hero.subtitle }}</h2>
+                <h1 class="h1 font-bold text-green-600">{{ hero.title|safe }}</h1>
+                <h2 class="text-gray-500 md:text-lg">{{ hero.subtitle|safe }}</h2>
             </div>
             <div class="flex justify-center py-8">
                 <button class="btn-main" data-open-form data-source="{{ hero.button_link }}">{{ hero.button_text }}</button>
@@ -73,7 +73,7 @@
                 <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
             </div>
             <div class="lg:col-span-8 col-span-full">
-                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ about.title }}</h1>
+                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ about.title|safe }}</h1>
                 <div class="w-full xl:max-w-[85%] pt-6 pb-8">
                     <div class="text-gray-500 md:text-lg md:columns-2 gap-12 leading-5.5 [hyphens:auto] [word-break:break-word]">
                         {{ about.description }}

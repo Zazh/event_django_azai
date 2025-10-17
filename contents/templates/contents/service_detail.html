@@ -11,8 +11,8 @@
   <div class="pt-[4.5rem]">
     <div class="text-center flex flex-col gap-3">
       <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
-      <h1 class="[ md:leading-15 md:text-[4rem] text-[3rem] leading-12 ] font-bold text-green-600">{{ service.hero_title }}</h1>
-      <h2 class="text-gray-500 md:text-lg">{{ service.hero_subtitle }}</h2>
+      <h1 class="[ md:leading-15 md:text-[4rem] text-[3rem] leading-12 ] font-bold text-green-600">{{ service.hero_title|safe }}</h1>
+      <h2 class="text-gray-500 md:text-lg">{{ service.hero_subtitle|safe }}</h2>
     </div>
     {% if service.hero_button_text %}
     <div class="flex justify-center py-8">
@@ -36,7 +36,7 @@
       <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
     </div>
     <div class="lg:col-span-8 col-span-full">
-      <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.about.title }}</h1>
+      <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.about.title|safe }}</h1>
       <div class="w-full xl:max-w-[85%] pt-6 pb-8">
         <div class="text-gray-500 md:text-lg md:columns-2 gap-12 leading-5.5 [hyphens:auto] [word-break:break-word]">
           {{ service.about.description }}
@@ -48,7 +48,7 @@
         <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
             {% for benefit in service.about.benefits.all %}
               <li class="flex flex-col justify-between gap-8 border-blue-900">
-                <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title }}</span>
+                <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title|safe }}</span>
                 <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number }}</span>
               </li>
             {% endfor %}
@@ -80,10 +80,10 @@
             {% for item in service.items.all %}
             <div>
                 <span class="mb-6">
-                  {{ item.svg_path }}
+                  {{ item.svg_path|safe }}
                 </span>
-                <h3 class=" font-bold text-black text-xl pt-6 pb-2">{{ item.title }}</h3>
-                <p class="text-gray-500 leading-5">{{ item.description }}</p>
+                <h3 class=" font-bold text-black text-xl pt-6 pb-2">{{ item.title|safe }}</h3>
+                <p class="text-gray-500 leading-5">{{ item.description|safe }}</p>
             </div>
             {% endfor %}
 

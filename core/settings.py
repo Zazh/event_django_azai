@@ -8,6 +8,15 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key-change-me
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://dnevent.kz',
+    'https://www.dnevent.kz',
+]
+
+# Доверяем заголовку X-Forwarded-Proto от Nginx
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ service.hero_title }}{% endblock %}
+
+{% block description %}{{ service.hero_subtitle|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="pt-[4.5rem]">
+    <div class="text-center flex flex-col gap-3">
+      <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
+      <h1 class="[ md:leading-15 md:text-[4rem] text-[3rem] leading-12 ] font-bold text-green-600">{{ service.hero_title }}</h1>
+      <h2 class="text-gray-500 md:text-lg">{{ service.hero_subtitle }}</h2>
+    </div>
+    {% if service.hero_button_text %}
+    <div class="flex justify-center py-8">
+      <button class="btn-main" data-open-form data-source="Кнопка {{ service.hero_button_link }}">{{ service.hero_button_text }}</button>
+    </div>
+    {% endif %}
+    <div class="flex justify-center pb-4 pt-14 border-b-1 border-gray-300">
+      <div class="gallery-container" id="galleryContainer">
+        <div class="gallery-track auto-scroll" id="infiniteGallery">
+          <!-- Изображения будут добавлены через JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if service.about %}
+<section class="py-16">
+  <div class="grid grid-cols-12 gap-4 px-4">
+    <div class="lg:col-span-4 col-span-full">
+      <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
+    </div>
+    <div class="lg:col-span-8 col-span-full">
+      <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.about.title }}</h1>
+      <div class="w-full xl:max-w-[85%] pt-6 pb-8">
+        <div class="text-gray-500 md:text-lg md:columns-2 gap-12 leading-5.5 [hyphens:auto] [word-break:break-word]">
+          {{ service.about.description }}
+        </div>
+      </div>
+      <button class="btn-outline" data-open-form data-source="Кнопка Заказать проект - услуги {{ service.hero_subtitle }}">Заказать проект</button>
+
+      <div class="pt-16">
+        <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
+            {% for benefit in service.about.benefits.all %}
+              <li class="flex flex-col justify-between gap-8 border-blue-900">
+                <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title }}</span>
+                <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number }}</span>
+              </li>
+            {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="py-8 border-y-1  border-gray-300">
+  <div class="partners-container" id="partnersContainer">
+    <div class="partners-track auto-scroll" id="partnersTrack">
+      <!-- Карточки будут добавлены через JavaScript -->
+    </div>
+  </div>
+</section>
+
+{% if service.items.all %}
+<section class="pt-9 pb-12">
+    <div class="grid grid-cols-12 gap-4 px-4 py-6">
+      <div class="lg:col-span-4 col-span-full">
+        <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Услуги</span>
+      </div>
+      <div class="lg:col-span-8 col-span-full">
+        <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">Незабываемый детский <br class="hidden md:block"> утренник с интерактивами</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-14 pt-14">
+            {% for item in service.items.all %}
+            <div>
+                <span class="mb-6">
+                  {{ item.svg_path }}
+                </span>
+                <h3 class=" font-bold text-black text-xl pt-6 pb-2">{{ item.title }}</h3>
+                <p class="text-gray-500 leading-5">{{ item.description }}</p>
+            </div>
+            {% endfor %}
+
+        </div>
+      </div>
+    </div>
+</section>
+{% endif %}
+
+{% if service.location %}
+<section class="pt-9 pb-12 border-t border-gray-300">
+  <div class="grid grid-cols-12 gap-4 px-4 py-6">
+    <div class="lg:col-span-4 col-span-full">
+      <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Локация</span>
+    </div>
+    <div class="lg:col-span-8 col-span-full">
+      <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.location.title }}</h1>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+        <div>
+          <img src="{{ service.location.image.url }}" class="w-full" alt="">
+        </div>
+        <div class="md:w-[80%] w-full">
+          <p class="text-gray-500">{{ service.location.description }}</p>
+
+          <div class="py-8">
+            <a href="{{ service.location.button_link }}" class="btn-outline">{{ service.location.button_text }}</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- BEGIN gallery -->
+{% if service.gallery.all %}
+<script>
+    // ============================================
+    // МОДУЛЬ: БЕСКОНЕЧНАЯ ГАЛЕРЕЯ
+    // ============================================
+    (function initInfiniteGallery() {
+        const galleryContainer = document.getElementById('galleryContainer');
+        const galleryTrack = document.getElementById('infiniteGallery');
+
+        // Проверяем наличие элемента
+        if (!galleryTrack || !galleryContainer) {
+            console.log('Бесконечная галерея не найдена на странице');
+            return;
+        }
+
+        // Данные галереи с разными типами (tall - высокие, square - квадратные)
+        const galleryItems = [
+            {% for item in service.gallery.all %}
+            {
+                image: '{{ item.image.url }}',
+                title: '{{ item.title }}',
+                description: '{{ item.description }}',
+                type: '{{ item.orientation }}'
+            },
+            {% endfor %}
+
+        ];
+
+        // Создание элементов галереи
+        function createGalleryItem(item) {
+            const heightClass = item.type === 'tall' ? 'h-80 md:h-96' : 'h-64 md:h-80';
+
+            return `
+                    <div class="gallery-item w-64 md:w-80">
+                        <div>
+                            <img src="${item.image}"
+                                 alt="${item.title}"
+                                 class="w-full ${heightClass} object-cover">
+                            <div class="py-2">
+                                <p class="text-gray-500 text-accent-500 text-sm italic">${item.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // Генерируем HTML для всех элементов
+        let galleryHTML = '';
+
+        // Добавляем оригинальные элементы
+        galleryItems.forEach(item => {
+            galleryHTML += createGalleryItem(item);
+        });
+
+        // Дублируем элементы для бесшовной прокрутки
+        galleryItems.forEach(item => {
+            galleryHTML += createGalleryItem(item);
+        });
+
+        // Вставляем в DOM
+        galleryTrack.innerHTML = galleryHTML;
+
+        // ============================================
+        // ДРАГ-ДРОП ФУНКЦИОНАЛ
+        // ============================================
+
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+        let animationID = null;
+
+        // Начало перетаскивания (мышь)
+        galleryContainer.addEventListener('mousedown', dragStart);
+
+        // Начало перетаскивания (тач)
+        galleryContainer.addEventListener('touchstart', dragStart);
+
+        // Перетаскивание (мышь)
+        galleryContainer.addEventListener('mousemove', drag);
+
+        // Перетаскивание (тач)
+        galleryContainer.addEventListener('touchmove', drag);
+
+        // Конец перетаскивания (мышь)
+        galleryContainer.addEventListener('mouseup', dragEnd);
+        galleryContainer.addEventListener('mouseleave', dragEnd);
+
+        // Конец перетаскивания (тач)
+        galleryContainer.addEventListener('touchend', dragEnd);
+
+        function dragStart(e) {
+            isDragging = true;
+            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+
+            // Останавливаем автопрокрутку
+            galleryTrack.classList.remove('auto-scroll');
+            galleryTrack.style.animation = 'none';
+
+            // Получаем текущую позицию
+            const transform = window.getComputedStyle(galleryTrack).transform;
+            if (transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                prevTranslate = matrix.m41;
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+
+            e.preventDefault();
+            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - startX;
+            currentTranslate = prevTranslate + diff;
+
+            // Применяем трансформацию
+            galleryTrack.style.transform = `translateX(${currentTranslate}px)`;
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+
+            isDragging = false;
+            prevTranslate = currentTranslate;
+
+            // Возобновляем автопрокрутку через 2 секунды
+            setTimeout(() => {
+                if (!isDragging) {
+                    galleryTrack.classList.add('auto-scroll');
+                }
+            }, 2000);
+        }
+
+        console.log('✓ Бесконечная галерея с драгом инициализирована');
+    })();
+</script>
+{% endif %}
+
+<!-- BEGIN partner -->
+{% if partners %}
+<script>
+    // ============================================
+    // МОДУЛЬ: СЛАЙДЕР ПАРТНЁРОВ
+    // ============================================
+    (function initPartnersSlider() {
+        const partnersContainer = document.getElementById('partnersContainer');
+        const partnersTrack = document.getElementById('partnersTrack');
+
+        // Проверяем наличие элемента
+        if (!partnersTrack || !partnersContainer) {
+            console.log('Слайдер партнёров не найден на странице');
+            return;
+        }
+
+        // Данные партнёров
+        const partners = [
+            {% for partner in partners %}
+            {
+                name: '{{ partner.name }}',
+                bgColor: '{{ partner.color }}',
+                svgPath: '{{ partner.svg_path }}'
+            },
+            {% endfor %}
+
+        ];
+
+        // Создание карточки партнёра
+        function createPartnerCard(partner) {
+            return `
+                    <div class="partner-card" style="background-color: ${partner.bgColor};">
+                        ${partner.svgPath}"
+                    </div>
+                `;
+        }
+
+        // Генерируем HTML для всех партнёров
+        let partnersHTML = '';
+
+        // Добавляем оригинальные карточки
+        partners.forEach(partner => {
+            partnersHTML += createPartnerCard(partner);
+        });
+
+        // Дублируем для бесшовной прокрутки
+        partners.forEach(partner => {
+            partnersHTML += createPartnerCard(partner);
+        });
+
+        // Вставляем в DOM
+        partnersTrack.innerHTML = partnersHTML;
+
+        // ============================================
+        // ДРАГ-ДРОП ФУНКЦИОНАЛ
+        // ============================================
+
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+
+        // Начало перетаскивания (мышь)
+        partnersContainer.addEventListener('mousedown', dragStart);
+
+        // Начало перетаскивания (тач)
+        partnersContainer.addEventListener('touchstart', dragStart);
+
+        // Перетаскивание (мышь)
+        partnersContainer.addEventListener('mousemove', drag);
+
+        // Перетаскивание (тач)
+        partnersContainer.addEventListener('touchmove', drag);
+
+        // Конец перетаскивания (мышь)
+        partnersContainer.addEventListener('mouseup', dragEnd);
+        partnersContainer.addEventListener('mouseleave', dragEnd);
+
+        // Конец перетаскивания (тач)
+        partnersContainer.addEventListener('touchend', dragEnd);
+
+        function dragStart(e) {
+            isDragging = true;
+            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+
+            // Останавливаем автопрокрутку
+            partnersTrack.classList.remove('auto-scroll');
+            partnersTrack.style.animation = 'none';
+
+            // Получаем текущую позицию
+            const transform = window.getComputedStyle(partnersTrack).transform;
+            if (transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                prevTranslate = matrix.m41;
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+
+            e.preventDefault();
+            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - startX;
+            currentTranslate = prevTranslate + diff;
+
+            // Применяем трансформацию
+            partnersTrack.style.transform = `translateX(${currentTranslate}px)`;
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+
+            isDragging = false;
+            prevTranslate = currentTranslate;
+
+            // Возобновляем автопрокрутку через 2 секунды
+            setTimeout(() => {
+                if (!isDragging) {
+                    // Сбрасываем transform
+                    partnersTrack.style.transform = '';
+
+                    // Перезапускаем анимацию
+                    partnersTrack.classList.remove('auto-scroll');
+
+                    // Небольшая задержка для сброса анимации
+                    setTimeout(() => {
+                        partnersTrack.classList.add('auto-scroll');
+                        prevTranslate = 0;
+                        currentTranslate = 0;
+                    }, 10);
+                }
+            }, 2000);
+        }
+
+        console.log('✓ Слайдер партнёров инициализирован');
+    })();
+</script>
+{% endif %}
+
+{% endblock %}

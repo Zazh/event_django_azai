@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Все услуги{% endblock %}
+
+{% block description %}Полный список наших услуг{% endblock %}
+
+{% block content %}
+
+<section class="flex flex-col relative z-0 bg-white ">
+    <div class="pb-8 gap-4 pt-12 px-4">
+        <div class="grid grid-cols-12 gap-6">
+          <div class="lg:col-span-4 col-span-full">
+            <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Услуги</span>
+          </div>
+            {% for service in services %}
+              <div class="lg:col-span-8 col-span-full grid md:grid-cols-2 gap-6">
+                <article>
+                  <a href="{% url 'contents:service_detail' service.slug %}">
+                    <div class="relative aspect-video overflow-hidden">
+                      <img src="{{ service.card_image.url }}" class="w-full xl:w-[90%]" alt="">
+                    </div>
+                    <div class="pt-2 h-[4rem]">
+                      <h2 class="font-bold">{{ service.card_title }}</h2>
+                    </div>
+                  </a>
+                </article>
+                {% empty %}
+                    <p>Услуги пока не добавлены</p>
+                {% endfor %}
+              </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

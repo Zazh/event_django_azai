@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Контакты{% endblock %}
+
+{% block description %}Свяжитесь с нами{% endblock %}
+
+{% block content %}
+
+{% if contact %}
+<div class="pb-[6rem] gap-4 pt-[8rem] px-6">
+  <h1 class="text-6xl font-medium pb-[3rem]">Контакты</h1>
+  <div class="flex flex-wrap">
+    <div class="w-full lg:w-1/2">
+      <h2 class="text-2xl">{{ contact.company_name }}</h2>
+    </div>
+    <div class="w-full lg:w-1/2 pt-[4rem] lg:pt-0">
+      <ul class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        <li>
+          <h3 class="pb-6 text-gray-500 font-medium">E-mail</h3>
+          <div class="flex flex-col gap-2 text-black">
+            <a href="mailto:{{ contact.email }}" class="hover:text-blue-600 font-medium">{{ contact.email }}</a>
+          </div>
+        </li>
+
+        <li>
+          <h3 class="pb-6 text-gray-500 font-medium">Телефон</h3>
+          <div class="flex flex-col gap-2 text-black">
+            <a href="tel:{{ contact.phone }}" class="hover:text-blue-600">{{ contact.phone }}</a>
+          </div>
+        </li>
+        <li>
+          <h3 class="pb-6 text-gray-500 font-medium">Адрес</h3>
+          <div class="flex flex-col gap-2 text-black">
+            <a class="hover:text-blue-600 font-medium" href="{{ contact.map_link }}">г. Астана, пр. Достык 1А, коворкинг Set Up</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    {% if contact.social_networks.all %}
+    <div class="w-full lg:w-1/2 pt-[4rem] ml-auto">
+      <ul class="flex justify-between md:justify-start items-center gap-8 md:gap-[3rem]">
+        {% for social in contact.social_networks.all %}
+        <li>
+          <a target="_blank" href="{{ social.link }}" rel="noopener noreferrer" aria-label="{{ social.name }}" title="{{ social.name }}">
+          <span class="[&amp;&gt;svg]:h-10 [&amp;&gt;svg]:w-10 md:[&amp;&gt;svg]:h-12 md:[&amp;&gt;svg]:w-12 [&amp;&gt;svg]:fill-current text-black hover:text-gray-500">
+            {{ social.svg_path }}
+          </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<section class="contacts">
+    <div class="container">
+        <h1>Контакты</h1>
+        <p>Контактная информация пока не добавлена</p>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

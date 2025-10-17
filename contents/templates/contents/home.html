@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block description %}Описание главной страницы для SEO{% endblock %}
+
+{% block content %}
+
+    <!-- HERO BLOCK -->
+    {% if hero %}
+    <section class="hero">
+        <div class="pt-[4.5rem]">
+            <div class="text-center flex flex-col gap-3">
+                <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
+                <h1 class="h1 font-bold text-green-600">{{ hero.title }}</h1>
+                <h2 class="text-gray-500 md:text-lg">{{ hero.subtitle }}</h2>
+            </div>
+            <div class="flex justify-center py-8">
+                <button class="btn-main" data-open-form data-source="{{ hero.button_link }}">{{ hero.button_text }}</button>
+            </div>
+            <div class="flex justify-center py-8 px-4">
+                <div class="relative rounded-[28px] overflow-hidden w-full max-w-screen-xl">
+                    <!-- Image cover -->
+                    <img    id="caseImage"
+                            src=""
+                            alt="Кейс"
+                            class="case-image w-full h-[620px] md:h-[520px] object-cover"/>
+
+                    <!-- Case content -->
+                    <div class="bg-white absolute bottom-6 w-[90%] ml-[5%] md:ml-0 md:bottom-8 md:left-8 md:w-full max-w-md rounded-2xl">
+                        <div class="md:p-8 p-6 case-content">
+                            <span class="text-gray-500 text-accent-500 text-sm tracking-widest">КЕЙС</span>
+
+                            <div class="md:pt-12 pt-8 pb-4">
+                                <h2 id="caseTitle" class="font-bold md:text-2xl text-xl"></h2>
+                                <p id="caseDescription" class="text-gray-500 py-4 text-sm md:leading-5"></p>
+                            </div>
+                            <div class="pb-4 flex justify-between">
+                                <button id="caseDetailsBtn" class="btn-link text-accent-500" data-open-form data-source="Главная Блок Кейсы">Подробнее</button>
+
+                                <div class="flex gap-2">
+                                    <button id="prevCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12.5 15L7.5 10L12.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <button id="nextCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M7.5 15L12.5 10L7.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Индикатор слайдов -->
+                            <div class="flex gap-2 justify-center pt-2">
+                                <div id="caseIndicators" class="flex gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+
+    <!-- ABOUT BLOCK -->
+    {% if about %}
+    <section id="#about" class="py-12">
+        <div class="grid grid-cols-12 gap-4 px-4">
+            <div class="lg:col-span-4 col-span-full">
+                <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
+            </div>
+            <div class="lg:col-span-8 col-span-full">
+                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ about.title }}</h1>
+                <div class="w-full xl:max-w-[85%] pt-6 pb-8">
+                    <div class="text-gray-500 md:text-lg md:columns-2 gap-12 leading-5.5 [hyphens:auto] [word-break:break-word]">
+                        {{ about.description }}
+                    </div>
+                </div>
+                <button class="btn-outline" data-open-form data-source="Кнопка Заказать проект - Главная Блок О нас">Заказать проект</button>
+
+                <div class="pt-16">
+                    <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
+                        {% for benefit in about.benefits.all %}
+                        <li class="flex flex-col justify-between gap-8 border-blue-900">
+                            <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title|safe }}</span>
+                            <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- SERVICES BLOCK -->
+    {% if services %}
+    <!-- Аккордеон с услугами -->
+    <section class="py-12">
+        <div class="border-gray-300 border-b">
+            <!-- Пункт 1 -->
+            {% for service in services %}
+            <div class="item active" data-accordion-item>
+                <div class="grid grid-cols-12 gap-4 px-4 border-gray-300 border-t py-6">
+                    <div class="item-number" data-accordion-trigger>
+                        <span class="text-gray-500 text-2xl uppercase font-mono font-semibold">01.</span>
+                    </div>
+                    <div class="lg:col-span-8 col-span-full">
+                        <div class="item-title" data-accordion-trigger>
+                            <h2 class="font-semibold md:text-3xl text-xl">{{ service.card_title }}</h2>
+                            <span class="accordion-icon">
+                                <svg class="horizontal-line" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10.5 0H13.5V24H10.5V0Z" fill="#7D7D7D"/>
+                                    <path  d="M1.31135e-07 13.5L0 10.5L24 10.5V13.5L1.31135e-07 13.5Z" fill="#7D7D7D"/>
+                                </svg>
+                            </span>
+                        </div>
+
+                        <!-- content -->
+                        <div class="accordion-content overflow-hidden">
+                            <div class="grid md:grid-cols-2 grid-cols-1 pt-6 gap-8">
+                                <div>
+                                    <img src="{{ service.card_image.url }}" class="w-full" alt="">
+                                </div>
+                                <div class="flex flex-col justify-between">
+                                    <div class="xl:w-3/4 pb-6">
+                                        <p class="text-sm text-gray-500 leading-relaxed">{{ service.card_description }}</p>
+                                    </div>
+                                    <ul class="inline-flex flex-wrap gap-2">
+                                        {% for tag in service.get_tags_list %}
+                                        <li class="border text-gray-500 text-sm p-2 rounded-full">{{ tag }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="pb-4">
+                                    <a href="{% url 'contents:service_detail' service.slug %}" class="btn-outline inline-flex gap-2">
+                                        <span>Подробнее</span>
+                                        <svg width="25" height="23" viewBox="0 0 25 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M13.8535 2.4541L23.0459 11.6465M23.0459 11.6465L13.1464 21.546M23.0459 11.6465H6.78245" stroke="currentColor" stroke-width="2"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- content -->
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- PARTNERS BLOCK -->
+    {% if partners %}
+    <section class="py-12">
+        <div class="grid grid-cols-12 gap-4 px-4 py-6">
+            <div class="lg:col-span-4 col-span-full">
+                <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">нам доверяют</span>
+            </div>
+            <div class="lg:col-span-8 col-span-full">
+                <ul class="grid md:grid-cols-4 grid-cols-2 gap-4">
+                    {% for partner in partners %}
+                    <li title="{{ partner.name }}" style="background-color:{{ partner.color }};" class="[ bg-gray-200 ] aspect-[8/5] rounded-md flex justify-center items-center">
+                        {{ partner.svg_path }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- PORTFOLIO BLOCK -->
+    <section class="py-12">
+    <div class="grid grid-cols-12 gap-4 px-4 py-6">
+        <div class="lg:col-span-4 col-span-full">
+            <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">портфолио</span>
+        </div>
+        <div class="lg:col-span-8 col-span-full">
+            <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">
+                Моменты из праздников которые мы <br>провели для клиентов за 12 лет работы
+            </h1>
+
+            <div class="mt-12">
+                <div id="gallery" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+            </div>
+
+        </div>
+        </div>
+    </section>
+
+<!-- Модальное окно -->
+<div id="modal" class="hidden fixed inset-0 bg-black/75 bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <button id="closeModal" class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 z-10">&times;</button>
+
+    <!-- Стрелка назад -->
+    <button id="prevBtn" class="absolute left-4 text-white text-5xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-14 h-14 flex items-center justify-center">‹</button>
+
+    <!-- Контейнер изображения -->
+    <div class="max-w-5xl max-h-full flex flex-col items-center justify-center">
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-[80vh] object-contain">
+        <p id="modalDescription" class="text-white text-center mt-4 text-lg"></p>
+    </div>
+
+    <!-- Стрелка вперед -->
+    <button id="nextBtn" class="absolute right-4 text-white text-5xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-14 h-14 flex items-center justify-center">›</button>
+</div>
+
+<!-- PORTFOLIO BLOCK -->
+{% if portfolio %}
+<script>
+    // ============================================
+    // МОДУЛЬ 1: ГАЛЕРЕЯ ФОТОГРАФИЙ
+    // ============================================
+    (function initPhotoGallery() {
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+
+        // Проверяем наличие необходимых элементов
+        if (!gallery || !modal) {
+            console.log('Галерея не найдена на странице');
+            return;
+        }
+
+        const photos = [
+            {% for item in portfolio.items.all %}
+            {
+                src: '{{ item.image.url }}',
+                description: '{{ item.description }}'
+            },
+            {% endfor %}
+
+        ];
+
+        let currentIndex = 0;
+
+        // Элементы модального окна
+        const modalImage = document.getElementById('modalImage');
+        const modalDescription = document.getElementById('modalDescription');
+        const closeModal = document.getElementById('closeModal');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Создание галереи
+        photos.forEach((photo, index) => {
+            const card = document.createElement('div');
+            card.className = 'bg-white overflow-hidden cursor-pointer transform transition hover:scale-105';
+            card.innerHTML = `
+            <div class="aspect-square overflow-hidden">
+                <img src="${photo.src}" alt="${photo.description}" class="w-full h-full object-cover">
+            </div>
+            <div class="pt-1 pb-3">
+                <i class="text-gray-700 text-sm">${photo.description}</i>
+            </div>
+        `;
+            card.onclick = () => openModal(index);
+            gallery.appendChild(card);
+        });
+
+        // Открыть модальное окно
+        function openModal(index) {
+            currentIndex = index;
+            updateModal();
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Закрыть модальное окно
+        function closeModalWindow() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Обновить содержимое модального окна
+        function updateModal() {
+            modalImage.src = photos[currentIndex].src;
+            modalImage.alt = photos[currentIndex].description;
+            modalDescription.textContent = photos[currentIndex].description;
+        }
+
+        // Предыдущее фото
+        function showPrev() {
+            currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+            updateModal();
+        }
+
+        // Следующее фото
+        function showNext() {
+            currentIndex = (currentIndex + 1) % photos.length;
+            updateModal();
+        }
+
+        // События
+        if (closeModal) closeModal.onclick = closeModalWindow;
+        if (prevBtn) prevBtn.onclick = showPrev;
+        if (nextBtn) nextBtn.onclick = showNext;
+
+        // Закрытие по клику на фон
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeModalWindow();
+            }
+        };
+
+        // Навигация клавишами
+        document.addEventListener('keydown', (e) => {
+            if (!modal.classList.contains('hidden')) {
+                if (e.key === 'ArrowLeft') showPrev();
+                if (e.key === 'ArrowRight') showNext();
+                if (e.key === 'Escape') closeModalWindow();
+            }
+        });
+
+        console.log('✓ Галерея инициализирована');
+    })();
+
+</script>
+{% endif %}
+
+<!-- CASES BLOCK -->
+{% if cases %}
+<script>
+    // ============================================
+    // МОДУЛЬ 5: СЛАЙДЕР КЕЙСОВ
+    // ============================================
+    (function initCasesSlider() {
+        const caseImage = document.getElementById('caseImage');
+
+        // Проверяем наличие необходимых элементов
+        if (!caseImage) {
+            console.log('Слайдер кейсов не найден на странице');
+            return;
+        }
+
+        const casesData = [
+            {% for case in cases %}
+            {
+                title: "{{ case.title }}",
+                description: "{{ case.description }}",
+                image: "{{ case.image.url }}",
+                buttonText: "{{ case.button_text }}"
+            },
+            {% endfor %}
+        ];
+
+        let currentCaseIndex = 0;
+        let caseAutoplayInterval = null;
+        const autoplayDelay = 3000;
+
+        const caseTitle = document.getElementById('caseTitle');
+        const caseDescription = document.getElementById('caseDescription');
+        const caseDetailsBtn = document.getElementById('caseDetailsBtn');
+        const prevCaseBtn = document.getElementById('prevCase');
+        const nextCaseBtn = document.getElementById('nextCase');
+        const caseIndicators = document.getElementById('caseIndicators');
+
+        // Создание индикаторов
+        function createCaseIndicators() {
+            if (!caseIndicators) return;
+
+            caseIndicators.innerHTML = '';
+            casesData.forEach((_, index) => {
+                const indicator = document.createElement('div');
+                indicator.className = 'w-2 h-2 rounded-full transition-all cursor-pointer';
+                indicator.style.backgroundColor = index === currentCaseIndex ? '#3b82f6' : '#d1d5db';
+                indicator.addEventListener('click', () => {
+                    goToCaseSlide(index);
+                    restartCaseAutoplay();
+                });
+                caseIndicators.appendChild(indicator);
+            });
+        }
+
+        // Обновление контента
+        function updateCaseContent() {
+            const currentCase = casesData[currentCaseIndex];
+            const caseContent = document.querySelector('.case-content');
+
+            // Добавляем эффект затухания
+            caseImage.style.opacity = '0';
+            if (caseContent) caseContent.style.opacity = '0';
+
+            setTimeout(() => {
+                caseImage.src = currentCase.image;
+                caseImage.alt = currentCase.title;
+                if (caseTitle) caseTitle.textContent = currentCase.title;
+                if (caseDescription) caseDescription.textContent = currentCase.description;
+
+                if (caseDetailsBtn) {
+                    caseDetailsBtn.onclick = function() {
+                        if (typeof window.openForm === 'function') {
+                            window.openForm(currentCase.buttonText);
+                        }
+                    };
+                }
+
+                updateCaseIndicators();
+
+                caseImage.style.opacity = '1';
+                if (caseContent) caseContent.style.opacity = '1';
+            }, 300);
+        }
+
+        // Обновление индикаторов
+        function updateCaseIndicators() {
+            if (!caseIndicators) return;
+
+            const indicators = caseIndicators.children;
+            Array.from(indicators).forEach((indicator, index) => {
+                indicator.style.backgroundColor = index === currentCaseIndex ? '#3b82f6' : '#d1d5db';
+            });
+        }
+
+        // Переход к определенному слайду
+        function goToCaseSlide(index) {
+            currentCaseIndex = index;
+            updateCaseContent();
+        }
+
+        // Предыдущий кейс
+        function showPrevCase() {
+            currentCaseIndex = (currentCaseIndex - 1 + casesData.length) % casesData.length;
+            updateCaseContent();
+        }
+
+        // Следующий кейс
+        function showNextCase() {
+            currentCaseIndex = (currentCaseIndex + 1) % casesData.length;
+            updateCaseContent();
+        }
+
+        // Запуск автосмены слайдов
+        function startCaseAutoplay() {
+            if (caseAutoplayInterval) {
+                clearInterval(caseAutoplayInterval);
+            }
+            caseAutoplayInterval = setInterval(() => {
+                showNextCase();
+            }, autoplayDelay);
+        }
+
+        // Остановка автосмены
+        function stopCaseAutoplay() {
+            if (caseAutoplayInterval) {
+                clearInterval(caseAutoplayInterval);
+                caseAutoplayInterval = null;
+            }
+        }
+
+        // Перезапуск автосмены
+        function restartCaseAutoplay() {
+            stopCaseAutoplay();
+            startCaseAutoplay();
+        }
+
+        // События
+        if (prevCaseBtn) {
+            prevCaseBtn.addEventListener('click', () => {
+                showPrevCase();
+                restartCaseAutoplay();
+            });
+        }
+
+        if (nextCaseBtn) {
+            nextCaseBtn.addEventListener('click', () => {
+                showNextCase();
+                restartCaseAutoplay();
+            });
+        }
+
+        // Инициализация
+        createCaseIndicators();
+        updateCaseContent();
+        startCaseAutoplay();
+
+        console.log('✓ Слайдер кейсов инициализирован');
+    })();
+</script>
+{% endif %}
+
+<script>
+    // ============================================
+    // МОДУЛЬ 3: АККОРДЕОН
+    // ============================================
+    (function initAccordion() {
+        const accordionItems = document.querySelectorAll('[data-accordion-item]');
+
+        // Проверяем наличие необходимых элементов
+        if (!accordionItems.length) {
+            console.log('Аккордеон не найден на странице');
+            return;
+        }
+
+        accordionItems.forEach(item => {
+            const triggers = item.querySelectorAll('[data-accordion-trigger]');
+            const content = item.querySelector('.accordion-content');
+            const horizontalLine = item.querySelector('.horizontal-line');
+
+            if (!content) return;
+
+            // Инициализация: скрываем все контенты кроме активных
+            if (!item.classList.contains('active')) {
+                content.style.maxHeight = '0';
+                content.style.opacity = '0';
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+                if (horizontalLine) horizontalLine.style.opacity = '0';
+            }
+
+            // Добавляем обработчик на все триггеры
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+
+                    if (isActive) {
+                        // Закрываем
+                        item.classList.remove('active');
+                        content.style.maxHeight = '0';
+                        content.style.opacity = '0';
+                        if (horizontalLine) horizontalLine.style.opacity = '1';
+                    } else {
+                        // Закрываем все остальные
+                        accordionItems.forEach(otherItem => {
+                            if (otherItem !== item) {
+                                otherItem.classList.remove('active');
+                                const otherContent = otherItem.querySelector('.accordion-content');
+                                const otherHorizontalLine = otherItem.querySelector('.horizontal-line');
+                                if (otherContent) {
+                                    otherContent.style.maxHeight = '0';
+                                    otherContent.style.opacity = '0';
+                                }
+                                if (otherHorizontalLine) otherHorizontalLine.style.opacity = '1';
+                            }
+                        });
+
+                        // Открываем текущий
+                        item.classList.add('active');
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        content.style.opacity = '1';
+                        if (horizontalLine) horizontalLine.style.opacity = '0';
+                    }
+                });
+            });
+        });
+
+        console.log('✓ Аккордеон инициализирован');
+    })();
+
+</script>
+
+{% endblock %}

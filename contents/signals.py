@@ -13,9 +13,9 @@ def optimize_portfolio_image(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Case)
 def optimize_case_image(sender, instance, **kwargs):
-    """Оптимизация изображений для Case"""
+    """Оптимизация изображений для Case - 1200px для главной страницы"""
     if instance.image and not instance.image.name.endswith('.webp'):
-        instance.image = optimize_image(instance.image)
+        instance.image = optimize_image(instance.image, max_width=1200, quality=90)
 
 
 @receiver(pre_save, sender=Service)
@@ -29,7 +29,7 @@ def optimize_service_image(sender, instance, **kwargs):
 def optimize_gallery_image(sender, instance, **kwargs):
     """Оптимизация изображений для ServiceGallery"""
     if instance.image and not instance.image.name.endswith('.webp'):
-        instance.image = optimize_image(instance.image)
+        instance.image = optimize_image(instance.image, max_width=1200, quality=90)
 
 
 @receiver(pre_save, sender=ServiceLocation)

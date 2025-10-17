@@ -175,7 +175,6 @@ class ContactAdmin(admin.ModelAdmin):
         }),
     )
 
-
 @admin.register(SocialNetwork)
 class SocialNetworkAdmin(admin.ModelAdmin):
     list_display = ['name', 'contact', 'link', 'order']

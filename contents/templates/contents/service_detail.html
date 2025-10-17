@@ -282,7 +282,7 @@
             {
                 name: '{{ partner.name }}',
                 bgColor: '{{ partner.color }}',
-                svgPath: '{{ partner.svg_path }}'
+                svgPath: '{{ partner.svg_path|escapejs }}'
             },
             {% endfor %}
 
@@ -292,7 +292,7 @@
         function createPartnerCard(partner) {
             return `
                     <div class="partner-card" style="background-color: ${partner.bgColor};">
-                        ${partner.svgPath}"
+                        ${partner.svgPath}
                     </div>
                 `;
         }

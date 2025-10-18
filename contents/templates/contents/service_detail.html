@@ -51,7 +51,7 @@
             {% for benefit in service.about.benefits.all %}
               <li class="flex flex-col justify-between gap-8 border-blue-900">
                 <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title|safe }}</span>
-                <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number }}</span>
+                <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number|safe }}</span>
               </li>
             {% endfor %}
         </ul>

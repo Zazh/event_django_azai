@@ -140,7 +140,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="bg-white rounded-lg max-w-md w-full p-6 relative">
         <button id="closeFormBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
 
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Оставить заявку</h2>
+        <h2 id="formModalTitle" class="text-2xl font-bold text-gray-800 mb-6">Оставьте заявку</h2>
 
         <form id="requestForm" class="space-y-4">
             <input type="hidden" id="formSource" name="source" value="">
@@ -373,15 +373,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- Скрипт для модального окна и отправки формы -->
 <script>
+        // Проверка, является ли строка URL
+        function isURL(str) {
+            return str.startsWith('http://') ||
+                   str.startsWith('https://') ||
+                   str.startsWith('/') ||
+                   str.startsWith('www.');
+        }
+
         // Открытие модального окна
-        function openFormModal(source = '') {
+        function openFormModal(source = '', buttonText = '') {
             const modal = document.getElementById('formModal');
             const sourceInput = document.getElementById('formSource');
+            const modalTitle = document.getElementById('formModalTitle');
 
             if (modal) {
                 modal.classList.remove('hidden');
                 if (sourceInput && source) {
                     sourceInput.value = source;
+                }
+
+                // Обновляем заголовок модального окна
+                if (modalTitle) {
+                    modalTitle.textContent = buttonText || 'Оставьте заявку';
                 }
             }
         }
@@ -389,10 +403,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         // Закрытие модального окна
         function closeFormModal() {
             const modal = document.getElementById('formModal');
+            const modalTitle = document.getElementById('formModalTitle');
+
             if (modal) {
                 modal.classList.add('hidden');
                 document.getElementById('requestForm').reset();
                 document.getElementById('successMessage').classList.add('hidden');
+
+                // Возвращаем заголовок по умолчанию
+                if (modalTitle) {
+                    modalTitle.textContent = 'Оставьте заявку';
+                }
             }
         }
 
@@ -418,8 +439,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.querySelectorAll('[data-open-form]').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
+
                     const source = this.getAttribute('data-source') || this.textContent;
-                    openFormModal(source);
+                    const buttonText = this.textContent.trim();
+
+                    // Проверяем, является ли source ссылкой
+                    if (isURL(source)) {
+                        // Если это ссылка - переходим по ней
+                        window.location.href = source;
+                    } else {
+                        // Если это текст - открываем модальное окно
+                        openFormModal(source, buttonText);
+                    }
                 });
             });
 

@@ -9,6 +9,29 @@
 
 {% block content %}
 
+<style>
+  /* Контейнеры скрывают «хвост» трека */
+  #galleryContainer, #partnersContainer { overflow: hidden; }
+
+  /* Треки — в одну линию, без схлопывания, с подсказкой браузеру */
+  #infiniteGallery, #partnersTrack {
+    display: flex;
+    gap: 1rem;
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Во время драга курсор и мягкое отключение «прилипаний» */
+  #galleryContainer.is-dragging, #partnersContainer.is-dragging { cursor: grabbing; }
+
+  /* Карточки не должны сжиматься (иначе на iOS скачет ширина) */
+  .gallery-item, .partner-card { flex-shrink: 0; }
+
+  /* Изображения — без миганий слоёв */
+  .gallery-item img { display:block; -webkit-transform: translateZ(0); }
+</style>
+
 <section class="hero">
   <div class="pt-[4.5rem]">
     <div class="text-center flex flex-col gap-3">
@@ -123,282 +146,147 @@
 {% endif %}
 
 
-<!-- BEGIN gallery -->
-{% if service.gallery.all %}
 <script>
-    // ============================================
-    // МОДУЛЬ: БЕСКОНЕЧНАЯ ГАЛЕРЕЯ
-    // ============================================
-    (function initInfiniteGallery() {
-        const galleryContainer = document.getElementById('galleryContainer');
-        const galleryTrack = document.getElementById('infiniteGallery');
+(() => {
+  // Универсальная бесконечная «маркиза» с авто-прокруткой и перетаскиванием.
+  function initMarquee({ containerSel, trackSel, items, renderItem, speed = 36 }) { // speed: px/сек
+    const $container = document.querySelector(containerSel);
+    const $track = document.querySelector(trackSel);
+    if (!$container || !$track || !items || !items.length) return;
 
-        // Проверяем наличие элемента
-        if (!galleryTrack || !galleryContainer) {
-            console.log('Бесконечная галерея не найдена на странице');
-            return;
-        }
+    // Рендер: один проход + дубликат (для бесшовности). Ширина карточек фиксирована → можно считать сразу.
+    const html = items.map(renderItem).join("");
+    $track.innerHTML = html + html;
 
-        // Данные галереи с разными типами (tall - высокие, square - квадратные)
-        const galleryItems = [
-            {% for item in service.gallery.all %}
-            {
-                image: '{{ item.image.url }}',
-                title: '{{ item.title }}',
-                description: '{{ item.description }}',
-                type: '{{ item.orientation }}'
-            },
-            {% endfor %}
+    // На всякий случай доклонируем, если контента мало (учтём ширину контейнера).
+    while ($track.scrollWidth < $container.offsetWidth * 2) {
+      $track.insertAdjacentHTML("beforeend", html);
+    }
 
-        ];
+    // Состояние
+    let x = 0;
+    let down = false;
+    let startX = 0;
+    let startXWorld = 0;
+    let lastTs = 0;
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let autoplay = !prefersReduced;
+    let contentW = $track.scrollWidth / 2; // ширина «одного цикла»
 
-        // Создание элементов галереи
-        function createGalleryItem(item) {
-            const heightClass = item.type === 'tall' ? 'h-80 md:h-96' : 'h-64 md:h-80';
+    // Главный цикл
+    function loop(ts) {
+      if (!lastTs) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
 
-            return `
-                    <div class="gallery-item w-64 md:w-80">
-                        <div>
-                            <img src="${item.image}"
-                                 alt="${item.title}"
-                                 class="w-full ${heightClass} object-cover">
-                            <div class="py-2">
-                                <p class="text-gray-500 text-accent-500 text-sm italic">${item.description}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-        }
+      if (autoplay && !down) x -= speed * dt;
 
-        // Генерируем HTML для всех элементов
-        let galleryHTML = '';
+      // Бесшовная подмена
+      if (x <= -contentW) x += contentW;
+      if (x > 0) x -= contentW;
 
-        // Добавляем оригинальные элементы
-        galleryItems.forEach(item => {
-            galleryHTML += createGalleryItem(item);
-        });
+      $track.style.transform = `translate3d(${x}px, 0, 0)`;
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
 
-        // Дублируем элементы для бесшовной прокрутки
-        galleryItems.forEach(item => {
-            galleryHTML += createGalleryItem(item);
-        });
+    // ————— Drag & Touch —————
+    const opts = { passive: false }; // критично для iOS Safari
+    const onDown = (e) => {
+      down = true;
+      autoplay = false;
+      startX = (e.touches ? e.touches[0].clientX : e.clientX);
+      startXWorld = x;
+      $container.classList.add('is-dragging');
+    };
+    const onMove = (e) => {
+      if (!down) return;
+      e.preventDefault(); // иначе iOS начнёт нативный скролл/«подпрыгивать»
+      const cur = (e.touches ? e.touches[0].clientX : e.clientX);
+      x = startXWorld + (cur - startX);
+    };
+    const onUp = () => {
+      if (!down) return;
+      down = false;
+      $container.classList.remove('is-dragging');
+      setTimeout(() => { autoplay = !prefersReduced; }, 800); // мягкий автопуск
+    };
 
-        // Вставляем в DOM
-        galleryTrack.innerHTML = galleryHTML;
+    // Pointer Events там, где доступны (современно и надёжно)
+    if ('PointerEvent' in window) {
+      $container.addEventListener('pointerdown', onDown, opts);
+      window.addEventListener('pointermove', onMove, opts);
+      window.addEventListener('pointerup', onUp, opts);
+      // Разрешаем вертикальный скролл страницы, блокируя горизонтальные жесты
+      $container.style.touchAction = 'pan-y';
+      $container.style.cursor = 'grab';
+    } else {
+      // Фоллбек для очень старых браузеров
+      $container.addEventListener('mousedown', onDown);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      $container.addEventListener('touchstart', onDown, opts);
+      window.addEventListener('touchmove', onMove, opts);
+      window.addEventListener('touchend', onUp);
+    }
 
-        // ============================================
-        // ДРАГ-ДРОП ФУНКЦИОНАЛ
-        // ============================================
+    // Если контент/шрифты перерисовались (редко), пересчитай ширину цикла
+    const ro = new ResizeObserver(() => { contentW = $track.scrollWidth / 2; });
+    ro.observe($track);
+  }
 
-        let isDragging = false;
-        let startX = 0;
-        let currentTranslate = 0;
-        let prevTranslate = 0;
-        let animationID = null;
+  // ========== Инициализация Галереи ==========
+  {% if service.gallery.all %}
+  const galleryItems = [
+    {% for item in service.gallery.all %}
+      { image:'{{ item.image.url }}',
+        title:'{{ item.title|escapejs }}',
+        description:'{{ item.description|escapejs }}',
+        type:'{{ item.orientation }}' },
+    {% endfor %}
+  ];
+  initMarquee({
+    containerSel: '#galleryContainer',
+    trackSel: '#infiniteGallery',
+    items: galleryItems,
+    speed: 38, // можно подстроить
+    renderItem: (it) => {
+      const h = (it.type === 'tall') ? 'h-80 md:h-96' : 'h-64 md:h-80';
+      return `
+        <div class="gallery-item w-64 md:w-80">
+          <div class=" overflow-hidden">
+            <img src="${it.image}" alt="${it.title}" class="w-full ${h} object-cover" decoding="async">
+          </div>
+          ${it.description ? `<div class="py-2"><p class="text-gray-500 text-sm italic">${it.description}</p></div>` : ''}
+        </div>
+      `;
+    }
+  });
+  {% endif %}
 
-        // Начало перетаскивания (мышь)
-        galleryContainer.addEventListener('mousedown', dragStart);
-
-        // Начало перетаскивания (тач)
-        galleryContainer.addEventListener('touchstart', dragStart);
-
-        // Перетаскивание (мышь)
-        galleryContainer.addEventListener('mousemove', drag);
-
-        // Перетаскивание (тач)
-        galleryContainer.addEventListener('touchmove', drag);
-
-        // Конец перетаскивания (мышь)
-        galleryContainer.addEventListener('mouseup', dragEnd);
-        galleryContainer.addEventListener('mouseleave', dragEnd);
-
-        // Конец перетаскивания (тач)
-        galleryContainer.addEventListener('touchend', dragEnd);
-
-        function dragStart(e) {
-            isDragging = true;
-            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-
-            // Останавливаем автопрокрутку
-            galleryTrack.classList.remove('auto-scroll');
-            galleryTrack.style.animation = 'none';
-
-            // Получаем текущую позицию
-            const transform = window.getComputedStyle(galleryTrack).transform;
-            if (transform !== 'none') {
-                const matrix = new DOMMatrix(transform);
-                prevTranslate = matrix.m41;
-            }
-        }
-
-        function drag(e) {
-            if (!isDragging) return;
-
-            e.preventDefault();
-            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            const diff = currentX - startX;
-            currentTranslate = prevTranslate + diff;
-
-            // Применяем трансформацию
-            galleryTrack.style.transform = `translateX(${currentTranslate}px)`;
-        }
-
-        function dragEnd() {
-            if (!isDragging) return;
-
-            isDragging = false;
-            prevTranslate = currentTranslate;
-
-            // Возобновляем автопрокрутку через 2 секунды
-            setTimeout(() => {
-                if (!isDragging) {
-                    galleryTrack.classList.add('auto-scroll');
-                }
-            }, 2000);
-        }
-
-        console.log('✓ Бесконечная галерея с драгом инициализирована');
-    })();
+  // ========== Инициализация Партнёров ==========
+  {% if partners %}
+  const partnersData = [
+    {% for partner in partners %}
+      { name:'{{ partner.name|escapejs }}',
+        bgColor:'{{ partner.color }}',
+        svg:`{{ partner.svg_path|escapejs }}` },
+    {% endfor %}
+  ];
+  initMarquee({
+    containerSel: '#partnersContainer',
+    trackSel: '#partnersTrack',
+    items: partnersData,
+    speed: 32,
+    renderItem: (p) => `
+      <div class="partner-card rounded-xl p-6 flex items-center justify-center" style="background-color:${p.bgColor}">
+        ${p.svg}
+      </div>
+    `
+  });
+  {% endif %}
+})();
 </script>
-{% endif %}
 
-<!-- BEGIN partner -->
-{% if partners %}
-<script>
-    // ============================================
-    // МОДУЛЬ: СЛАЙДЕР ПАРТНЁРОВ
-    // ============================================
-    (function initPartnersSlider() {
-        const partnersContainer = document.getElementById('partnersContainer');
-        const partnersTrack = document.getElementById('partnersTrack');
-
-        // Проверяем наличие элемента
-        if (!partnersTrack || !partnersContainer) {
-            console.log('Слайдер партнёров не найден на странице');
-            return;
-        }
-
-        // Данные партнёров
-        const partners = [
-            {% for partner in partners %}
-            {
-                name: '{{ partner.name }}',
-                bgColor: '{{ partner.color }}',
-                svgPath: '{{ partner.svg_path|escapejs }}'
-            },
-            {% endfor %}
-
-        ];
-
-        // Создание карточки партнёра
-        function createPartnerCard(partner) {
-            return `
-                    <div class="partner-card" style="background-color: ${partner.bgColor};">
-                        ${partner.svgPath}
-                    </div>
-                `;
-        }
-
-        // Генерируем HTML для всех партнёров
-        let partnersHTML = '';
-
-        // Добавляем оригинальные карточки
-        partners.forEach(partner => {
-            partnersHTML += createPartnerCard(partner);
-        });
-
-        // Дублируем для бесшовной прокрутки
-        partners.forEach(partner => {
-            partnersHTML += createPartnerCard(partner);
-        });
-
-        // Вставляем в DOM
-        partnersTrack.innerHTML = partnersHTML;
-
-        // ============================================
-        // ДРАГ-ДРОП ФУНКЦИОНАЛ
-        // ============================================
-
-        let isDragging = false;
-        let startX = 0;
-        let currentTranslate = 0;
-        let prevTranslate = 0;
-
-        // Начало перетаскивания (мышь)
-        partnersContainer.addEventListener('mousedown', dragStart);
-
-        // Начало перетаскивания (тач)
-        partnersContainer.addEventListener('touchstart', dragStart);
-
-        // Перетаскивание (мышь)
-        partnersContainer.addEventListener('mousemove', drag);
-
-        // Перетаскивание (тач)
-        partnersContainer.addEventListener('touchmove', drag);
-
-        // Конец перетаскивания (мышь)
-        partnersContainer.addEventListener('mouseup', dragEnd);
-        partnersContainer.addEventListener('mouseleave', dragEnd);
-
-        // Конец перетаскивания (тач)
-        partnersContainer.addEventListener('touchend', dragEnd);
-
-        function dragStart(e) {
-            isDragging = true;
-            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-
-            // Останавливаем автопрокрутку
-            partnersTrack.classList.remove('auto-scroll');
-            partnersTrack.style.animation = 'none';
-
-            // Получаем текущую позицию
-            const transform = window.getComputedStyle(partnersTrack).transform;
-            if (transform !== 'none') {
-                const matrix = new DOMMatrix(transform);
-                prevTranslate = matrix.m41;
-            }
-        }
-
-        function drag(e) {
-            if (!isDragging) return;
-
-            e.preventDefault();
-            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            const diff = currentX - startX;
-            currentTranslate = prevTranslate + diff;
-
-            // Применяем трансформацию
-            partnersTrack.style.transform = `translateX(${currentTranslate}px)`;
-        }
-
-        function dragEnd() {
-            if (!isDragging) return;
-
-            isDragging = false;
-            prevTranslate = currentTranslate;
-
-            // Возобновляем автопрокрутку через 2 секунды
-            setTimeout(() => {
-                if (!isDragging) {
-                    // Сбрасываем transform
-                    partnersTrack.style.transform = '';
-
-                    // Перезапускаем анимацию
-                    partnersTrack.classList.remove('auto-scroll');
-
-                    // Небольшая задержка для сброса анимации
-                    setTimeout(() => {
-                        partnersTrack.classList.add('auto-scroll');
-                        prevTranslate = 0;
-                        currentTranslate = 0;
-                    }, 10);
-                }
-            }, 2000);
-        }
-
-        console.log('✓ Слайдер партнёров инициализирован');
-    })();
-</script>
-{% endif %}
 
 {% endblock %}

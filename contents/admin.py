@@ -15,7 +15,7 @@ class BenefitInline(admin.TabularInline):
 
 @admin.register(HeroBlock)
 class HeroBlockAdmin(admin.ModelAdmin):
-    list_display = ['title', 'button_text', 'is_active', 'order']
+    list_display = ['seo_title', 'seo_description', 'title', 'button_text', 'is_active', 'order']
     list_filter = ['is_active']
     list_editable = ['is_active', 'order']
 
@@ -132,11 +132,17 @@ class ServiceAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
+        ('SEO', {
+            'fields': ('seo_title', 'seo_description')
+        }),
         ('Карточка услуги', {
             'fields': ('card_image', 'card_title', 'card_description', 'card_tags')
         }),
         ('Hero блок (детальная страница)', {
             'fields': ('hero_title', 'hero_subtitle', 'hero_button_text', 'hero_button_link')
+        }),
+        ('Услуги блок (заголовок)', {
+            'fields': ('service_title',)
         }),
         ('Настройки', {
             'fields': ('slug', 'show_on_homepage', 'order', 'is_active')

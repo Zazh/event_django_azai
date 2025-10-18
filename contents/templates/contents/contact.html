@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Контакты{% endblock %}
+{% block seo_title %} Контакты DNE — организация мероприятий в Алматы и Астане и по Казахстану {% endblock %}
+{% block seo_description %} Свяжитесь с DNE: консультация и коммерческое предложение по корпоративным мероприятиям под ключ. Алматы и Астана. Форма обратной связи, email и телефон {% endblock %}
 
-{% block description %}Свяжитесь с нами{% endblock %}
+{% block og_title %} Контакты DNE — организация мероприятий в Алматы и Астане и по Казахстану {% endblock %}
+{% block og_description %} Свяжитесь с DNE: консультация и коммерческое предложение по корпоративным мероприятиям под ключ. Алматы и Астана. Форма обратной связи, email и телефон {% endblock %}
+
 
 {% block content %}
 
@@ -32,7 +35,7 @@
         <li>
           <h3 class="pb-6 text-gray-500 font-medium">Адрес</h3>
           <div class="flex flex-col gap-2 text-black">
-            <a class="hover:text-blue-600 font-medium" href="{{ contact.map_link }}">г. Астана, пр. Достык 1А, коворкинг Set Up</a>
+            <a class="hover:text-blue-600 font-medium" href="{{ contact.map_link }}">{{ contact.address }}</a>
           </div>
         </li>
       </ul>
@@ -45,7 +48,7 @@
         <li>
           <a target="_blank" href="{{ social.link }}" rel="noopener noreferrer" aria-label="{{ social.name }}" title="{{ social.name }}">
           <span class="[&amp;&gt;svg]:h-10 [&amp;&gt;svg]:w-10 md:[&amp;&gt;svg]:h-12 md:[&amp;&gt;svg]:w-12 [&amp;&gt;svg]:fill-current text-black hover:text-gray-500">
-            {{ social.svg_path }}
+            {{ social.svg_path|safe }}
           </span>
           </a>
         </li>

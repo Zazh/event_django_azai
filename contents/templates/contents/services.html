@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Все услуги{% endblock %}
+{% block seo_title %} Услуги DNE: корпоративы, утренники, брендированные подарки и мерч — Алматы, Астана и по Казахстану {% endblock %}
+{% block seo_description %} Каталог услуг DNE: организация B2B-мероприятий под ключ в Алматы и Астане и по Казахстану — новогодние корпоративы, детские утренники, брендированные подарки и мерч. Запросите коммерческое предложение {% endblock %}
 
-{% block description %}Полный список наших услуг{% endblock %}
+{% block og_title %} Услуги DNE: корпоративы, утренники, брендированные подарки и мерч — Алматы, Астана и по Казахстану {% endblock %}
+{% block og_description %} Каталог услуг DNE: организация B2B-мероприятий под ключ в Алматы и Астане и по Казахстану — новогодние корпоративы, детские утренники, брендированные подарки и мерч. Запросите коммерческое предложение {% endblock %}
 
 {% block content %}
 
@@ -13,12 +15,13 @@
           <div class="lg:col-span-4 col-span-full">
             <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Услуги</span>
           </div>
-            {% for service in services %}
+
               <div class="lg:col-span-8 col-span-full grid md:grid-cols-2 gap-6">
+                {% for service in services %}
                 <article>
                   <a href="{% url 'contents:service_detail' service.slug %}">
                     <div class="relative aspect-video overflow-hidden">
-                      <img src="{{ service.card_image.url }}" class="w-full xl:w-[90%]" alt="">
+                      <img src="{{ service.card_image.url }}" class="w-full xl:w-[90%]" alt="{{ service.card_title }}">
                     </div>
                     <div class="pt-2 h-[4rem]">
                       <h2 class="font-bold">{{ service.card_title }}</h2>

@@ -3,6 +3,8 @@ from django.db import models
 
 class HeroBlock(models.Model):
     """Главный блок Hero на главной странице"""
+    seo_title = models.CharField('SEO Заголовок', max_length=200, blank=True)
+    seo_description = models.CharField('SEO Description', max_length=200, blank=True)
     title = models.CharField('Заголовок', max_length=200)
     subtitle = models.TextField('Подзаголовок')
     button_text = models.CharField('Текст кнопки', max_length=100)
@@ -133,11 +135,16 @@ class Service(models.Model):
     card_description = models.TextField('Краткое описание')
     card_tags = models.TextField('Теги', help_text='Каждый тег с новой строки')
 
+    seo_title = models.CharField('SEO Заголовок', max_length=200, blank=True)
+    seo_description = models.CharField('SEO Description', max_length=200, blank=True)
+
     # Для детальной страницы (Hero блок)
     hero_title = models.CharField('Hero: Заголовок', max_length=200)
     hero_subtitle = models.TextField('Hero: Подзаголовок')
     hero_button_text = models.CharField('Hero: Текст кнопки', max_length=100, blank=True)
     hero_button_link = models.CharField('Hero: Ссылка кнопки', max_length=200, blank=True)
+
+    service_title = models.CharField('Описание услуги: Заголовок', max_length=200, blank=True)
 
     # Slug для URL
     slug = models.SlugField('URL слаг', unique=True, max_length=200)

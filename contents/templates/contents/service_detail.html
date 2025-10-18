@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ service.hero_title }}{% endblock %}
+{% block seo_title %} {{ service.seo_title }} {% endblock %}
+{% block seo_description %} {{ service.seo_description }} {% endblock %}
 
-{% block description %}{{ service.hero_subtitle|truncatewords:20 }}{% endblock %}
+{% block og_title %} {{ service.seo_title }} {% endblock %}
+{% block og_description %} {{ service.seo_description }} {% endblock %}
 
 {% block content %}
 
@@ -74,7 +76,7 @@
         <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Услуги</span>
       </div>
       <div class="lg:col-span-8 col-span-full">
-        <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">Незабываемый детский <br class="hidden md:block"> утренник с интерактивами</h1>
+        <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.service_title|safe }}</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-14 pt-14">
             {% for item in service.items.all %}

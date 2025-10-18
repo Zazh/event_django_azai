@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Главная страница{% endblock %}
+{% block seo_title %} {{ hero.seo_title }} {% endblock %}
+{% block seo_description %} {{ hero.seo_description }} {% endblock %}
 
-{% block description %}Описание главной страницы для SEO{% endblock %}
+{% block og_title %} {{ hero.seo_title }} {% endblock %}
+{% block og_description %} {{ hero.seo_description }} {% endblock %}
+
 
 {% block content %}
-
     <!-- HERO BLOCK -->
     {% if hero %}
     <section class="hero">
@@ -103,10 +105,10 @@
         <div class="border-gray-300 border-b">
             <!-- Пункт 1 -->
             {% for service in services %}
-            <div class="item active" data-accordion-item>
+            <div class="item {% if forloop.first %} active{% endif %}" data-accordion-item>
                 <div class="grid grid-cols-12 gap-4 px-4 border-gray-300 border-t py-6">
                     <div class="item-number" data-accordion-trigger>
-                        <span class="text-gray-500 text-2xl uppercase font-mono font-semibold">01.</span>
+                        <span class="text-gray-500 text-2xl uppercase font-mono font-semibold">{{ forloop.counter|stringformat:"02d" }}.</span>
                     </div>
                     <div class="lg:col-span-8 col-span-full">
                         <div class="item-title" data-accordion-trigger>

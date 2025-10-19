@@ -155,8 +155,8 @@
 
         <div class="lg:col-span-8 col-span-full grid grid-cols-2 gap-8">
             <div class="col-span-full">
-                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.form_block.title }}</h1>
-                <p class="text-gray-500 mt-4">{{ service.form_block.subtitle|linebreaks }}</p>
+                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.form_block.title|safe }}</h1>
+                <p class="text-gray-500 mt-4">{{ service.form_block.subtitle|safe }}</p>
             </div>
             <div class="col-span-full md:col-span-1">
                 <form id="serviceRequestForm" class="flex gap-3 w-full flex-col" data-service-name="{{ service.card_title }}">

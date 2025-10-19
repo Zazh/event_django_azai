@@ -305,6 +305,27 @@ class ServicePartner(models.Model):
         return self.name
 
 
+class ServiceFormBlock(models.Model):
+    """Блок с формой заявки для услуги"""
+    service = models.OneToOneField(
+        Service,
+        on_delete=models.CASCADE,
+        related_name='form_block',
+        verbose_name='Услуга'
+    )
+    title = models.CharField('Заголовок', max_length=200)
+    subtitle = models.TextField('Подзаголовок')
+    button_text = models.CharField('Текст кнопки', max_length=100, default='Оставить заявку')
+    is_active = models.BooleanField('Активен', default=True)
+
+    class Meta:
+        verbose_name = 'Блок формы заявки'
+        verbose_name_plural = 'Блоки форм заявок'
+
+    def __str__(self):
+        return f"Форма: {self.service.card_title}"
+
+
 class Contact(models.Model):
     """Контактная информация (единственная запись)"""
     company_name = models.CharField('Название компании', max_length=200)

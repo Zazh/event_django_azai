@@ -2,9 +2,10 @@ from django.contrib import admin
 from .models import (
     HeroBlock, AboutBlock, Benefit,
     Partner, PortfolioBlock, PortfolioItem, Case, Service,
-    ServiceAbout, ServiceBenefit, ServiceItem, ServiceLocation,
+    ServiceAbout, ServiceBenefit, ServiceItem, ServiceLocation, ServiceFormBlock,
     ServiceGallery, ServicePartner,
-    Contact, SocialNetwork
+    Contact, SocialNetwork,
+
 
 )
 
@@ -82,6 +83,10 @@ class ServiceLocationInline(admin.StackedInline):
     fields = ['title', 'description', 'image', 'button_text', 'button_link']
 
 
+class ServiceFormBlockInline(admin.StackedInline):
+    model = ServiceFormBlock
+    extra = 0
+    fields = ['title', 'subtitle', 'button_text', 'is_active']
 
 # Отдельная админка для ServiceAbout с бенефитами
 @admin.register(ServiceAbout)
@@ -128,7 +133,8 @@ class ServiceAdmin(admin.ModelAdmin):
         ServiceAboutInline,
         ServiceItemInline,
         ServiceLocationInline,
-        ServiceGalleryInline
+        ServiceGalleryInline,
+        ServiceFormBlockInline
     ]
 
     fieldsets = (
@@ -187,3 +193,10 @@ class SocialNetworkAdmin(admin.ModelAdmin):
     list_filter = ['contact']
     list_editable = ['order']
     search_fields = ['name', 'contact__company_name']
+
+
+@admin.register(ServiceFormBlock)
+class ServiceFormBlockAdmin(admin.ModelAdmin):
+    list_display = ['service', 'title', 'button_text', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['title', 'service__card_title']

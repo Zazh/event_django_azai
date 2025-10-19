@@ -145,6 +145,138 @@
 </section>
 {% endif %}
 
+<!-- FORM BLOCK (Блок с формой заявки) -->
+{% if service.form_block and service.form_block.is_active %}
+<section class="pt-9 pb-12 border-t border-gray-300">
+    <div class="grid grid-cols-12 gap-4 px-4 py-6">
+        <div class="lg:col-span-4 col-span-full">
+            <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider"></span>
+        </div>
+
+        <div class="lg:col-span-8 col-span-full grid grid-cols-2 gap-8">
+            <div class="col-span-full">
+                <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.form_block.title }}</h1>
+                <p class="text-gray-500 mt-4">{{ service.form_block.subtitle|linebreaks }}</p>
+            </div>
+            <div class="col-span-full md:col-span-1">
+                <form id="serviceRequestForm" class="flex gap-3 w-full flex-col" data-service-name="{{ service.card_title }}">
+                    <div>
+                        <input
+                            class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
+                            type="text"
+                            name="full_name"
+                            placeholder="ФИО *"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <input
+                            class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
+                            type="tel"
+                            name="phone"
+                            placeholder="Телефон *"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <input
+                            class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
+                            type="text"
+                            name="company"
+                            placeholder="Компания"
+                        >
+                    </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn-main w-full">
+                            {{ service.form_block.button_text }}
+                        </button>
+                    </div>
+
+                    <!-- Сообщение об успехе -->
+                    <div id="serviceFormSuccess" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
+                        Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.
+                    </div>
+
+                    <!-- Сообщение об ошибке -->
+                    <div id="serviceFormError" class="hidden mt-4 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+                        Ошибка при отправке. Попробуйте позже.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<script>
+    // Обработка формы заявки на странице услуги
+    document.addEventListener('DOMContentLoaded', function() {
+        const serviceForm = document.getElementById('serviceRequestForm');
+
+        if (serviceForm) {
+            serviceForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                const successMsg = document.getElementById('serviceFormSuccess');
+                const errorMsg = document.getElementById('serviceFormError');
+
+                // Скрываем предыдущие сообщения
+                successMsg.classList.add('hidden');
+                errorMsg.classList.add('hidden');
+
+                // Блокируем кнопку
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Отправка...';
+
+                // Собираем данные
+                const formData = {
+                    full_name: this.querySelector('[name="full_name"]').value,
+                    phone: this.querySelector('[name="phone"]').value,
+                    company: this.querySelector('[name="company"]').value || 'Не указано',
+                    source: 'Услуга: ' + this.dataset.serviceName + ' - Форма на странице'
+                };
+
+                try {
+                    const response = await fetch('/api/feedback/submit/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Показываем успех
+                        successMsg.classList.remove('hidden');
+                        this.reset();
+
+                        // Прокручиваем к сообщению
+                        successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // Скрываем через 5 секунд
+                        setTimeout(() => {
+                            successMsg.classList.add('hidden');
+                        }, 5000);
+                    } else {
+                        errorMsg.textContent = result.error || 'Ошибка при отправке';
+                        errorMsg.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    errorMsg.classList.remove('hidden');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        }
+    });
+</script>
 
 <script>
 (() => {

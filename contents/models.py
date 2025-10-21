@@ -1,5 +1,4 @@
 from django.db import models
-from .utils import compress_pdf
 
 class HeroBlock(models.Model):
     """Главный блок Hero на главной странице"""
@@ -152,7 +151,7 @@ class Service(models.Model):
         upload_to='services/pdfs/',
         blank=True,
         null=True,
-        help_text='Если файл загружен, пользователь получит его после отправки заявки. Файл будет автоматически сжат.'
+        help_text='Если файл загружен, пользователь получит его после отправки заявки'
     )
 
     # Slug для URL
@@ -175,34 +174,6 @@ class Service(models.Model):
     def get_tags_list(self):
         """Возвращает список тегов"""
         return [tag.strip() for tag in self.card_tags.split('\n') if tag.strip()]
-
-    def save(self, *args, **kwargs):
-        """Переопределяем save для сжатия PDF"""
-        # Проверяем, загружен ли новый PDF файл
-        if self.pdf_file:
-            try:
-                # Получаем старый объект из БД (если он существует)
-                if self.pk:
-                    old_instance = Service.objects.get(pk=self.pk)
-                    # Проверяем, изменился ли файл
-                    if old_instance.pdf_file != self.pdf_file:
-                        # Файл изменился, нужно сжать
-                        compressed_pdf = compress_pdf(self.pdf_file)
-                        if compressed_pdf:
-                            # Сохраняем имя файла
-                            file_name = self.pdf_file.name
-                            # Заменяем файл на сжатый
-                            self.pdf_file.save(file_name, compressed_pdf, save=False)
-                else:
-                    # Новый объект, сжимаем PDF
-                    compressed_pdf = compress_pdf(self.pdf_file)
-                    if compressed_pdf:
-                        file_name = self.pdf_file.name
-                        self.pdf_file.save(file_name, compressed_pdf, save=False)
-            except Exception as e:
-                print(f"Ошибка при обработке PDF: {e}")
-
-        super().save(*args, **kwargs)
 
 
 class ServiceAbout(models.Model):

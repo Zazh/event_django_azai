@@ -144,6 +144,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <form id="requestForm" class="space-y-4">
             <input type="hidden" id="formSource" name="source" value="">
+            <input type="hidden" id="formPdfUrl" name="pdf_url" value="">
 
             <div>
                 <label for="fullName" class="block text-gray-700 font-medium mb-2">ФИО</label>
@@ -296,215 +297,150 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     })();
 </script>
 
+<!-- Скрипт модального окна формы заявки -->
 <script>
-    // ============================================
-    // МОДУЛЬ 2: ФОРМА ЗАЯВКИ
-    // ============================================
-    (function initRequestForm() {
-        const formModal = document.getElementById('formModal');
+(function() {
+    'use strict';
 
-        // Проверяем наличие необходимых элементов
-        if (!formModal) {
-            console.log('Форма заявки не найдена на странице');
-            return;
+    const formModal = document.getElementById('formModal');
+
+    // Проверяем наличие модального окна
+    if (!formModal) {
+        console.log('Модальное окно формы не найдено');
+        return;
+    }
+
+    const closeFormBtn = document.getElementById('closeFormBtn');
+    const requestForm = document.getElementById('requestForm');
+    const successMessage = document.getElementById('successMessage');
+    const formSource = document.getElementById('formSource');
+    const formPdfUrl = document.getElementById('formPdfUrl');
+    const formModalTitle = document.getElementById('formModalTitle');
+
+    // Открытие модального окна
+    function openFormModal(source = '', buttonText = '', pdfUrl = '') {
+        if (formSource && source) {
+            formSource.value = source;
         }
 
-        const closeFormBtn = document.getElementById('closeFormBtn');
-        const requestForm = document.getElementById('requestForm');
-        const successMessage = document.getElementById('successMessage');
-        const formSource = document.getElementById('formSource');
-
-        // Открыть форму (функция доступна глобально)
-        window.openForm = (buttonName) => {
-            if (formSource) formSource.value = buttonName;
-            formModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        };
-
-        // Закрыть форму
-        function closeForm() {
-            formModal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            if (requestForm) requestForm.reset();
-            if (successMessage) successMessage.classList.add('hidden');
+        if (formPdfUrl && pdfUrl) {
+            formPdfUrl.value = pdfUrl;
         }
 
-        if (closeFormBtn) {
-            closeFormBtn.onclick = closeForm;
+        // Обновляем заголовок
+        if (formModalTitle) {
+            formModalTitle.textContent = buttonText || 'Оставьте заявку';
         }
 
-        // Закрытие по клику на фон
-        formModal.onclick = (e) => {
-            if (e.target === formModal) {
-                closeForm();
-            }
-        };
+        formModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
 
-        // Отправка формы
-        if (requestForm) {
-            requestForm.onsubmit = (e) => {
+    // Закрытие модального окна
+    function closeFormModal() {
+        formModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+
+        if (requestForm) requestForm.reset();
+        if (successMessage) successMessage.classList.add('hidden');
+
+        // Возвращаем заголовок по умолчанию
+        if (formModalTitle) {
+            formModalTitle.textContent = 'Оставьте заявку';
+        }
+    }
+
+    // Закрытие по кнопке
+    if (closeFormBtn) {
+        closeFormBtn.addEventListener('click', closeFormModal);
+    }
+
+    // Закрытие по клику на фон
+    formModal.addEventListener('click', function(e) {
+        if (e.target === formModal) {
+            closeFormModal();
+        }
+    });
+
+    // Обработчики для всех кнопок с data-open-form
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-open-form]').forEach(button => {
+            button.addEventListener('click', function(e) {
                 e.preventDefault();
 
-                const formData = {
-                    fullName: document.getElementById('fullName')?.value,
-                    phone: document.getElementById('phone')?.value,
-                    company: document.getElementById('company')?.value,
-                    source: formSource?.value
-                };
+                const source = this.getAttribute('data-source') || this.textContent;
+                const buttonText = this.textContent.trim();
+                const pdfUrl = this.getAttribute('data-pdf-url') || '';
 
-                console.log('Данные заявки:', formData);
-                console.log('Источник заявки:', formData.source);
-
-                // Показать сообщение об успехе
-                requestForm.classList.add('hidden');
-                if (successMessage) successMessage.classList.remove('hidden');
-
-                // Закрыть через 2 секунды
-                setTimeout(() => {
-                    closeForm();
-                    requestForm.classList.remove('hidden');
-                }, 2000);
-            };
-        }
-
-        console.log('✓ Форма заявки инициализирована');
-    })();
-</script>
-
-<!-- Скрипт для модального окна и отправки формы -->
-<script>
-        // Проверка, является ли строка URL
-        function isURL(str) {
-            return str.startsWith('http://') ||
-                   str.startsWith('https://') ||
-                   str.startsWith('/') ||
-                   str.startsWith('www.');
-        }
-
-        // Открытие модального окна
-        function openFormModal(source = '', buttonText = '') {
-            const modal = document.getElementById('formModal');
-            const sourceInput = document.getElementById('formSource');
-            const modalTitle = document.getElementById('formModalTitle');
-
-            if (modal) {
-                modal.classList.remove('hidden');
-                if (sourceInput && source) {
-                    sourceInput.value = source;
-                }
-
-                // Обновляем заголовок модального окна
-                if (modalTitle) {
-                    modalTitle.textContent = buttonText || 'Оставьте заявку';
-                }
-            }
-        }
-
-        // Закрытие модального окна
-        function closeFormModal() {
-            const modal = document.getElementById('formModal');
-            const modalTitle = document.getElementById('formModalTitle');
-
-            if (modal) {
-                modal.classList.add('hidden');
-                document.getElementById('requestForm').reset();
-                document.getElementById('successMessage').classList.add('hidden');
-
-                // Возвращаем заголовок по умолчанию
-                if (modalTitle) {
-                    modalTitle.textContent = 'Оставьте заявку';
-                }
-            }
-        }
-
-        // Обработчики для кнопок открытия/закрытия
-        document.addEventListener('DOMContentLoaded', function() {
-            // Закрытие по клику на кнопку
-            const closeBtn = document.getElementById('closeFormBtn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeFormModal);
-            }
-
-            // Закрытие по клику вне модального окна
-            const modal = document.getElementById('formModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeFormModal();
-                    }
-                });
-            }
-
-            // Найти все кнопки с data-open-form и повесить обработчик
-            document.querySelectorAll('[data-open-form]').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    const source = this.getAttribute('data-source') || this.textContent;
-                    const buttonText = this.textContent.trim();
-
-                    // Проверяем, является ли source ссылкой
-                    if (isURL(source)) {
-                        // Если это ссылка - переходим по ней
-                        window.location.href = source;
-                    } else {
-                        // Если это текст - открываем модальное окно
-                        openFormModal(source, buttonText);
-                    }
-                });
+                openFormModal(source, buttonText, pdfUrl);
             });
+        });
+    });
 
-            // Обработка отправки формы
-            const form = document.getElementById('requestForm');
-            if (form) {
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
+    // Отправка формы
+    if (requestForm) {
+        requestForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.textContent;
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Отправка...';
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
 
-                    const formData = {
-                        full_name: document.getElementById('fullName').value,
-                        phone: document.getElementById('phone').value,
-                        company: document.getElementById('company').value,
-                        source: document.getElementById('formSource').value
-                    };
+            const formData = {
+                full_name: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                company: document.getElementById('company').value,
+                source: formSource.value
+            };
 
-                    try {
-                        const response = await fetch('/api/feedback/submit/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(formData)
-                        });
+            const pdfUrl = formPdfUrl.value;
 
-                        const result = await response.json();
-
-                        if (result.success) {
-                            // Показываем сообщение об успехе
-                            document.getElementById('successMessage').classList.remove('hidden');
-                            form.reset();
-
-                            // Закрываем модальное окно через 2 секунды
-                            setTimeout(() => {
-                                closeFormModal();
-                            }, 2000);
-                        } else {
-                            alert('Ошибка: ' + (result.error || 'Неизвестная ошибка'));
-                        }
-                    } catch (error) {
-                        alert('Ошибка при отправке заявки. Попробуйте позже.');
-                        console.error('Error:', error);
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalText;
-                    }
+            try {
+                const response = await fetch('/api/feedback/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Показываем сообщение об успехе
+                    if (successMessage) {
+                        successMessage.classList.remove('hidden');
+                    }
+                    requestForm.reset();
+
+                    // Если есть PDF - открываем его и закрываем модалку
+                    if (pdfUrl) {
+                        setTimeout(() => {
+                            window.open(pdfUrl, '_blank');
+                            closeFormModal();
+                        }, 1500);
+                    } else {
+                        // Если PDF нет - просто закрываем через 2 секунды
+                        setTimeout(() => {
+                            closeFormModal();
+                        }, 2000);
+                    }
+                } else {
+                    alert('Ошибка: ' + (result.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('Ошибка при отправке заявки. Попробуйте позже.');
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         });
-    </script>
+    }
+
+    console.log('✓ Модальное окно формы заявки инициализировано');
+})();
+</script>
 </body>
 </html>

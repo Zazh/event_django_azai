@@ -22,12 +22,6 @@
     backface-visibility: hidden;
   }
 
-  /* Во время драга курсор и мягкое отключение «прилипаний» */
-  #galleryContainer.is-dragging, #partnersContainer.is-dragging { cursor: grabbing; }
-
-  /* Карточки не должны сжиматься (иначе на iOS скачет ширина) */
-  .gallery-item, .partner-card { flex-shrink: 0; }
-
   /* Изображения — без миганий слоёв */
   .gallery-item img { display:block; -webkit-transform: translateZ(0); }
 </style>
@@ -41,7 +35,22 @@
     </div>
     {% if service.hero_button_text %}
     <div class="flex justify-center py-8">
-      <button class="btn-main" data-open-form data-source="{{ service.hero_button_link }}">{{ service.hero_button_text }}</button>
+        {% if service.pdf_file %}
+            <!-- Если есть PDF файл -->
+            <button class="btn-main"
+                    data-open-form
+                    data-source="Скачать {{ service.hero_button_text }} - {{ service.card_title }}"
+                    data-pdf-url="{{ service.pdf_file.url }}">
+                {{ service.hero_button_text }}
+            </button>
+        {% else %}
+            <!-- Если PDF нет -->
+            <button class="btn-main"
+                    data-open-form
+                    data-source="{{ service.hero_button_text }} - {{ service.card_title }}">
+                {{ service.hero_button_text }}
+            </button>
+        {% endif %}
     </div>
     {% endif %}
     <div class="flex justify-center pb-4 pt-14 border-b-1 border-gray-300">
@@ -67,8 +76,12 @@
           {{ service.about.description }}
         </div>
       </div>
-      <button class="btn-outline" data-open-form data-source="Кнопка Заказать проект - услуги {{ service.hero_subtitle }}">Заказать проект</button>
-
+        <button class="btn-outline"
+                data-open-form
+                data-source="Кнопка Заказать проект - услуги {{ service.hero_subtitle }}"
+                {% if service.pdf_file %}data-pdf-url="{{ service.pdf_file.url }}"{% endif %}>
+            Заказать проект
+        </button>
       <div class="pt-16">
         <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
             {% for benefit in service.about.benefits.all %}
@@ -159,8 +172,12 @@
                 <p class="text-gray-500 mt-4">{{ service.form_block.subtitle|safe }}</p>
             </div>
             <div class="col-span-full md:col-span-1">
-                <form id="serviceRequestForm" class="flex gap-3 w-full flex-col" data-service-name="{{ service.card_title }}">
-                    <div>
+                <form id="serviceRequestForm"
+                      class="flex gap-3 w-full flex-col"
+                      data-service-name="{{ service.card_title }}"
+                      data-pdf-url="{% if service.pdf_file %}{{ service.pdf_file.url }}{% endif %}">
+
+                    <label>
                         <input
                             class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
                             type="text"
@@ -168,8 +185,8 @@
                             placeholder="ФИО *"
                             required
                         >
-                    </div>
-                    <div>
+                    </label>
+                    <label>
                         <input
                             class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
                             type="tel"
@@ -177,15 +194,15 @@
                             placeholder="Телефон *"
                             required
                         >
-                    </div>
-                    <div>
+                    </label>
+                    <label>
                         <input
                             class="py-4 px-4 w-full border-gray-300 border-1 rounded-lg"
                             type="text"
                             name="company"
                             placeholder="Компания"
                         >
-                    </div>
+                    </label>
 
                     <div class="pt-3">
                         <button type="submit" class="btn-main w-full">
@@ -195,7 +212,7 @@
 
                     <!-- Сообщение об успехе -->
                     <div id="serviceFormSuccess" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
-                        Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.
+                        Заявка успешно отправлена!{% if service.pdf_file %} Документ откроется в новой вкладке.{% else %} Мы свяжемся с вами в ближайшее время.{% endif %}
                     </div>
 
                     <!-- Сообщение об ошибке -->
@@ -222,6 +239,7 @@
                 const originalText = submitBtn.textContent;
                 const successMsg = document.getElementById('serviceFormSuccess');
                 const errorMsg = document.getElementById('serviceFormError');
+                const pdfUrl = this.dataset.pdfUrl || '';
 
                 // Скрываем предыдущие сообщения
                 successMsg.classList.add('hidden');
@@ -238,6 +256,8 @@
                     company: this.querySelector('[name="company"]').value || 'Не указано',
                     source: 'Услуга: ' + this.dataset.serviceName + ' - Форма на странице'
                 };
+
+                console.log('PDF URL:', pdfUrl); // Отладка
 
                 try {
                     const response = await fetch('/api/feedback/submit/', {
@@ -258,10 +278,23 @@
                         // Прокручиваем к сообщению
                         successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                        // Скрываем через 5 секунд
-                        setTimeout(() => {
-                            successMsg.classList.add('hidden');
-                        }, 5000);
+                        // Если есть PDF - открываем его
+                        if (pdfUrl) {
+                            console.log('Открываем PDF:', pdfUrl);
+                            setTimeout(() => {
+                                window.open(pdfUrl, '_blank');
+                            }, 1500);
+
+                            // Скрываем сообщение через 3 секунды
+                            setTimeout(() => {
+                                successMsg.classList.add('hidden');
+                            }, 3000);
+                        } else {
+                            // Если PDF нет - скрываем через 5 секунд
+                            setTimeout(() => {
+                                successMsg.classList.add('hidden');
+                            }, 5000);
+                        }
                     } else {
                         errorMsg.textContent = result.error || 'Ошибка при отправке';
                         errorMsg.classList.remove('hidden');

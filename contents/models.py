@@ -146,6 +146,15 @@ class Service(models.Model):
 
     service_title = models.CharField('Описание услуги: Заголовок', max_length=200, blank=True)
 
+    # PDF файл для скачивания после заявки
+    pdf_file = models.FileField(
+        'PDF файл',
+        upload_to='services/pdfs/',
+        blank=True,
+        null=True,
+        help_text='Если файл загружен, пользователь получит его после отправки заявки'
+    )
+
     # Slug для URL
     slug = models.SlugField('URL слаг', unique=True, max_length=200)
 

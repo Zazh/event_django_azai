@@ -145,7 +145,7 @@ class ServiceAdmin(admin.ModelAdmin):
             'fields': ('card_image', 'card_title', 'card_description', 'card_tags')
         }),
         ('Hero блок (детальная страница)', {
-            'fields': ('hero_title', 'hero_subtitle', 'hero_button_text', 'hero_button_link')
+            'fields': ('hero_title', 'hero_subtitle', 'hero_button_text', 'hero_button_link', 'pdf_file')
         }),
         ('Услуги блок (заголовок)', {
             'fields': ('service_title',)

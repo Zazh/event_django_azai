@@ -9,8 +9,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://dnevent.kz',
-    'https://www.dnevent.kz',
+    'https://dananurzhumaevents.kz',
+    'https://www.dananurzhumaevents.kz',
 ]
 
 # Доверяем заголовку X-Forwarded-Proto от Nginx

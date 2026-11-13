@@ -3,10 +3,8 @@ from .models import (
     HeroBlock, AboutBlock, Benefit,
     Partner, PortfolioBlock, PortfolioItem, Case, Service,
     ServiceAbout, ServiceBenefit, ServiceItem, ServiceLocation, ServiceFormBlock,
-    ServiceGallery, ServicePartner,
+    ServiceGallery, ServicePartner, ServiceProgramItem,
     Contact, SocialNetwork,
-
-
 )
 
 class BenefitInline(admin.TabularInline):
@@ -76,6 +74,13 @@ class ServiceItemInline(admin.TabularInline):
     fields = ['title', 'svg_path', 'description', 'order']
 
 
+# Inline для шагов программы («Как мы работаем» / программа вечера)
+class ServiceProgramItemInline(admin.TabularInline):
+    model = ServiceProgramItem
+    extra = 1
+    fields = ['label', 'title', 'description', 'order']
+
+
 # Inline для ServiceLocation
 class ServiceLocationInline(admin.StackedInline):
     model = ServiceLocation
@@ -122,8 +127,8 @@ class ServiceGalleryInline(admin.TabularInline):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['card_title', 'slug', 'show_on_homepage', 'is_active', 'order', 'created_at']
-    list_filter = ['is_active', 'show_on_homepage', 'created_at']
+    list_display = ['card_title', 'slug', 'direction', 'parent', 'show_on_homepage', 'is_active', 'order', 'created_at']
+    list_filter = ['direction', 'is_active', 'show_on_homepage', 'created_at']
     list_editable = ['show_on_homepage', 'is_active', 'order']
     search_fields = ['card_title', 'card_description', 'hero_title']
     prepopulated_fields = {'slug': ('card_title',)}
@@ -132,6 +137,7 @@ class ServiceAdmin(admin.ModelAdmin):
     inlines = [
         ServiceAboutInline,
         ServiceItemInline,
+        ServiceProgramItemInline,
         ServiceLocationInline,
         ServiceGalleryInline,
         ServiceFormBlockInline
@@ -149,6 +155,9 @@ class ServiceAdmin(admin.ModelAdmin):
         }),
         ('Услуги блок (заголовок)', {
             'fields': ('service_title',)
+        }),
+        ('Сезон и структура', {
+            'fields': ('direction', 'parent', 'badge', 'price_from', 'accent', 'program_title')
         }),
         ('Настройки', {
             'fields': ('slug', 'show_on_homepage', 'order', 'is_active')
@@ -177,10 +186,10 @@ class ContactAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Основная информация', {
-            'fields': ('company_name', 'email', 'phone')
+            'fields': ('company_name', 'email', 'phone', 'phone_extra')
         }),
         ('Адрес и карта', {
-            'fields': ('address', 'map_link')
+            'fields': ('address', 'branches', 'map_link')
         }),
         ('Настройки', {
             'fields': ('is_active',)

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 class HeroBlock(models.Model):
@@ -128,6 +129,19 @@ class Case(models.Model):
 
 class Service(models.Model):
     """Услуги"""
+    DIRECTION_EVENTS = 'events'
+    DIRECTION_PRODUCTION = 'production'
+    DIRECTION_CHOICES = [
+        (DIRECTION_EVENTS, 'DN Events'),
+        (DIRECTION_PRODUCTION, 'DN Production'),
+    ]
+    ACCENT_CHOICES = [
+        ('', 'Стиль сайта'),
+        ('legends', 'LEGENDS'),
+        ('teleport', 'TELEPORT 2037'),
+        ('immersive', 'IMMERSIVE SHOW'),
+    ]
+
     # Для карточек (главная и страница услуг)
     card_image = models.ImageField('Картинка для карточки', upload_to='services/cards/')
     card_title = models.CharField('Название услуги', max_length=200)
@@ -144,6 +158,27 @@ class Service(models.Model):
     hero_button_link = models.CharField('Hero: Ссылка кнопки', max_length=200, blank=True)
 
     service_title = models.CharField('Описание услуги: Заголовок', max_length=200, blank=True)
+
+    # Сезон и структура
+    direction = models.CharField(
+        'Направление', max_length=20, choices=DIRECTION_CHOICES, default=DIRECTION_EVENTS
+    )
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='children',
+        limit_choices_to={'parent__isnull': True},
+        verbose_name='Родительская страница',
+        help_text='Вложенность — один уровень: концепция внутри сезонной страницы',
+    )
+    badge = models.CharField('Бейдж', max_length=50, blank=True, help_text='Например: «Новинка 2027»')
+    price_from = models.CharField(
+        'Цена от', max_length=100, blank=True, help_text='Строкой: «от 6 000 000 ₸»'
+    )
+    accent = models.CharField('Акцент страницы', max_length=20, blank=True, choices=ACCENT_CHOICES)
+    program_title = models.CharField('Шаги и программа: заголовок', max_length=200, blank=True)
 
     # PDF файл для скачивания после заявки
     pdf_file = models.FileField(
@@ -170,6 +205,22 @@ class Service(models.Model):
 
     def __str__(self):
         return self.card_title
+
+    def clean(self):
+        """Вложенность страниц — один уровень."""
+        super().clean()
+        if not self.parent_id:
+            return
+        if self.pk and self.parent_id == self.pk:
+            raise ValidationError({'parent': 'Страница не может быть родителем самой себе.'})
+        if self.parent.parent_id:
+            raise ValidationError(
+                {'parent': 'У выбранной страницы уже есть родитель — вложенность только один уровень.'}
+            )
+        if self.pk and self.children.exists():
+            raise ValidationError(
+                {'parent': 'У этой страницы есть дочерние — она не может стать дочерней.'}
+            )
 
     def get_tags_list(self):
         """Возвращает список тегов"""
@@ -225,7 +276,7 @@ class ServiceItem(models.Model):
         verbose_name='Услуга'
     )
     title = models.CharField('Заголовок пункта', max_length=200)
-    svg_path = models.TextField('SVG Path')
+    svg_path = models.TextField('SVG Path', blank=True)
     description = models.TextField('Краткое описание')
     order = models.IntegerField('Порядок', default=0)
 
@@ -236,6 +287,28 @@ class ServiceItem(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ServiceProgramItem(models.Model):
+    """Шаг программы: «Как мы работаем» на хабе, программа вечера на концепции"""
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        related_name='program',
+        verbose_name='Услуга'
+    )
+    label = models.CharField('Метка', max_length=50, help_text='Время «18:00–19:00» или номер «01»')
+    title = models.CharField('Заголовок', max_length=200)
+    description = models.TextField('Описание', blank=True)
+    order = models.IntegerField('Порядок', default=0)
+
+    class Meta:
+        verbose_name = 'Шаг программы'
+        verbose_name_plural = 'Шаги программы'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.label} — {self.title}"
 
 
 class ServiceLocation(models.Model):
@@ -339,7 +412,9 @@ class Contact(models.Model):
     company_name = models.CharField('Название компании', max_length=200)
     email = models.EmailField('Email')
     phone = models.CharField('Телефон', max_length=50)
+    phone_extra = models.CharField('Второй телефон', max_length=50, blank=True)
     address = models.TextField('Адрес')
+    branches = models.TextField('Филиалы и представители', blank=True)
     map_link = models.URLField('Ссылка на карту', help_text='Google Maps или Яндекс Карты')
     is_active = models.BooleanField('Активен', default=True)
 

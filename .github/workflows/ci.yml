@@ -1,0 +1,41 @@
+# CI репо кода (GitHub Actions): Django check, миграции без пропусков, тесты против Postgres.
+# Python — как в Dockerfile прода (3.11); Postgres — как на проде (16), service-контейнер.
+# Паролей в CI нет: Postgres в режиме trust, DB_PASSWORD пустой; SECRET_KEY — заглушка
+# только для CI. Реальные значения сюда не пишутся.
+# CSS здесь не собирается: static/dist/styles.css коммитится собранным (tailwind/).
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_DB: ci
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SECRET_KEY: ci-only-placeholder
+      DEBUG: "False"
+      DB_NAME: ci
+      DB_USER: ci
+      DB_PASSWORD: ""
+      DB_HOST: localhost
+      DB_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test

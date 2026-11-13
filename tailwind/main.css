@@ -16,13 +16,12 @@
     --color-gray-600:   #4D4D4D;
     --color-gray-700:   #868686;
     --color-gray-800:   #2B2B2B;
-    --color-green-600:  #1B3C39;
-    --bg-green-600:     #1B3C39;
+    /* Бренд (сезон 2026–2027): один токен на роль, сырой hex в шаблонах не использовать */
+    --color-brand-600:  #600D15; /* бордо: логотип, заголовки hero, кнопки */
+    --color-brand-900:  #2B0B10; /* тёмный бордо: тёмные подложки, ховер и нажатие */
+    --color-accent-600: #C2101B; /* красный: бейджи и цифры-акценты */
+    --color-cream-50:   #FBF7F3; /* кремовая подложка */
     --color-red-500:    #FF2C2C;
-}
-
-.button-brand {
-    @apply bg-green-600 hover:bg-green-800 text-white px-5 py-4 rounded-full font-bold text-sm tracking-wide flex items-center gap-1;
 }
 
 #pins {
@@ -112,7 +111,7 @@
         @apply px-5 py-3.5 rounded-full text-sm text-gray-600 hover:bg-white/50 cursor-pointer tracking-wide;
     }
     .menu-item.active {
-        @apply bg-white text-green-600;
+        @apply bg-white text-brand-600;
     }
     .text-accent-500 {
         font-family: 'Helvetica Neue', serif;
@@ -137,16 +136,16 @@
 }
 
 .btn-default {
-    @apply px-7 py-4.5 bg-green-600 text-white rounded-full text-sm font-bold cursor-pointer hover:bg-black;
+    @apply px-7 py-4.5 bg-brand-600 text-white rounded-full text-sm font-bold cursor-pointer hover:bg-brand-900;
 }
 .btn-main {
-    @apply px-7 py-5 bg-green-600 text-white rounded-full font-bold cursor-pointer hover:bg-black;
+    @apply px-7 py-5 bg-brand-600 text-white rounded-full font-bold cursor-pointer hover:bg-brand-900;
 }
 .btn-link {
     @apply cursor-pointer hover:text-gray-500;
 }
 .btn-outline {
-    @apply border-[2px] border-green-600 text-green-600 px-7 py-4 rounded-full text-sm font-bold cursor-pointer hover:bg-green-600 hover:text-white
+    @apply border-[2px] border-brand-600 text-brand-600 px-7 py-4 rounded-full text-sm font-bold cursor-pointer hover:bg-brand-600 hover:text-white
 }
 
 .accordion-content {
@@ -160,7 +159,7 @@
     transform: rotate(-45deg);
 }
 .item-title {
-    @apply flex justify-between items-center cursor-pointer hover:text-blue-600;
+    @apply flex justify-between items-center cursor-pointer hover:text-brand-600;
 }
 .item-number {
     @apply lg:col-span-4 hidden lg:flex cursor-pointer;

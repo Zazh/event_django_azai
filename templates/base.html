@@ -52,7 +52,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {% block header %}
         <div class="brand">
             <a href="{% url 'contents:home' %}">
-                <svg class="md:w-[4.5rem] w-[3.5rem] pt-2 md:pt-0 text-green-600" viewBox="0 0 65 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="md:w-[4.5rem] w-[3.5rem] pt-2 md:pt-0 text-brand-600" viewBox="0 0 65 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M0 27.7804V10.4314H7.25833V20.6431H15.3833C17.875 20.6431 22.1 19.2157 22.1 13.2863C22.1 8.54274 17.6222 7.21046 15.3833 7.13726H0V0.54902H17.4417C20.5617 0.54902 23.725 2.37909 24.9167 3.29412L40.3 15.3725V0H65L60.6667 7.24706H47.45V10.102H64.025L59.15 17.4588H47.45V20.6431H65L60.2333 28H46.9083C43.9617 28 41.275 26.7556 40.3 26.1333L28.8167 17.4588C28.4194 18.5569 27.0833 21.4557 24.9167 24.2667C22.75 27.0776 16.2139 27.9268 13.2167 28L0 27.7804Z" fill="currentColor"/>
                 </svg>
             </a>
@@ -152,7 +152,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         type="text"
                         id="fullName"
                         required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none"
                         placeholder="Введите ФИО"
                 >
             </div>
@@ -163,7 +163,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         type="tel"
                         id="phone"
                         required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none"
                         placeholder="+7 (701) 234-56-78"
                 >
             </div>
@@ -174,14 +174,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         type="text"
                         id="company"
                         required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none"
                         placeholder="Название компании"
                 >
             </div>
 
             <button
                     type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition mt-6"
+                    class="btn-main w-full mt-6"
             >
                 Отправить заявку
             </button>
@@ -212,16 +212,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <nav class="flex-1 overflow-y-auto p-6">
             <ul class="space-y-3 text-gray-700">
                 <li>
-                    <a href="{% url 'contents:home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-black{% endif %} block uppercase tracking-widest text-accent-500  hover:text-blue-600 transition">Главная</a>
+                    <a href="{% url 'contents:home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-black{% endif %} block uppercase tracking-widest text-accent-500  hover:text-brand-600 transition">Главная</a>
                 </li>
 <!--                <li>-->
-<!--                    <a href="#" class=" block uppercase tracking-widest text-accent-500 hover:text-blue-600 transition">О нас</a>-->
+<!--                    <a href="#" class=" block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">О нас</a>-->
 <!--                </li>-->
                 <li>
-                    <a href="{% url 'contents:services_list' %}" class="{% if request.resolver_match.url_name == 'services_list' or request.resolver_match.url_name == 'service_detail' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-blue-600 transition">Услуги</a>
+                    <a href="{% url 'contents:services_list' %}" class="{% if request.resolver_match.url_name == 'services_list' or request.resolver_match.url_name == 'service_detail' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Услуги</a>
                 </li>
                 <li>
-                    <a href="{% url 'contents:contacts' %}" class="{% if request.resolver_match.url_name == 'contacts' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-blue-600 transition">Контакты</a>
+                    <a href="{% url 'contents:contacts' %}" class="{% if request.resolver_match.url_name == 'contacts' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Контакты</a>
                 </li>
             </ul>
 
@@ -229,7 +229,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!-- Кнопка внизу меню -->
         <div class="p-6  ">
-            <button id="menuFormBtn" data-open-form data-source="Меню - Оставить заявку" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition">
+            <button id="menuFormBtn" data-open-form data-source="Меню - Оставить заявку" class="btn-main w-full">
                 Оставить заявку
             </button>
         </div>

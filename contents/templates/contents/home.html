@@ -14,7 +14,7 @@
         <div class="pt-[4.5rem]">
             <div class="text-center flex flex-col gap-3">
                 <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
-                <h1 class="h1 font-bold text-green-600">{{ hero.title|safe }}</h1>
+                <h1 class="h1 font-bold text-brand-600">{{ hero.title|safe }}</h1>
                 <h2 class="text-gray-500 md:text-lg">{{ hero.subtitle|safe }}</h2>
             </div>
             <div class="flex justify-center py-8">
@@ -86,7 +86,7 @@
                 <div class="pt-16">
                     <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
                         {% for benefit in about.benefits.all %}
-                        <li class="flex flex-col justify-between gap-8 border-blue-900">
+                        <li class="flex flex-col justify-between gap-8">
                             <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title|safe }}</span>
                             <span class="text-black md:text-5xl text-4xl font-mono font-medium">{{ benefit.number }}</span>
                         </li>
@@ -372,7 +372,7 @@
             casesData.forEach((_, index) => {
                 const indicator = document.createElement('div');
                 indicator.className = 'w-2 h-2 rounded-full transition-all cursor-pointer';
-                indicator.style.backgroundColor = index === currentCaseIndex ? '#3b82f6' : '#d1d5db';
+                indicator.style.backgroundColor = index === currentCaseIndex ? 'var(--color-brand-600)' : '#d1d5db';
                 indicator.addEventListener('click', () => {
                     goToCaseSlide(index);
                     restartCaseAutoplay();
@@ -417,7 +417,7 @@
 
             const indicators = caseIndicators.children;
             Array.from(indicators).forEach((indicator, index) => {
-                indicator.style.backgroundColor = index === currentCaseIndex ? '#3b82f6' : '#d1d5db';
+                indicator.style.backgroundColor = index === currentCaseIndex ? 'var(--color-brand-600)' : '#d1d5db';
             });
         }
 

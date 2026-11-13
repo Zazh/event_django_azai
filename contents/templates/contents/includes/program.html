@@ -1,0 +1,29 @@
+{# Шаги: «Как мы работаем» на хабе, программа вечера по времени на концепции. #}
+{% with steps=service.program.all %}
+{% if steps %}
+<section id="program" class="pt-9 pb-12 border-t border-gray-300">
+  <div class="grid grid-cols-12 gap-4 px-4 py-6">
+    <div class="lg:col-span-4 col-span-full">
+      <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">{% if parent %}Программа{% else %}Этапы{% endif %}</span>
+    </div>
+    <div class="lg:col-span-8 col-span-full">
+      {% if service.program_title %}
+      <h2 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.program_title }}</h2>
+      {% endif %}
+      <ol class="pt-10 border-b border-gray-300">
+        {% for step in steps %}
+        <li class="grid md:grid-cols-12 grid-cols-1 gap-x-4 gap-y-1 py-4 border-t border-gray-300">
+          <span class="program-label md:col-span-3 font-mono font-medium">{{ step.label }}</span>
+          <span class="md:col-span-4 font-bold text-black">{{ step.title }}</span>
+          <span class="md:col-span-5 text-gray-500 leading-5">{{ step.description }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% if parent %}
+      <p class="text-sm text-gray-500 pt-6">Тайминг предварительный, программа собирается под компанию.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endwith %}

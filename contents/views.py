@@ -24,12 +24,19 @@ def services_list(request):
 
 
 def service_detail(request, slug):
-    """Детальная страница услуги"""
+    """Страница услуги: обычная, хаб (есть дочерние страницы) или концепция (есть родитель)"""
     service = get_object_or_404(Service, slug=slug, is_active=True)
+    parent = service.parent if service.parent_id and service.parent.is_active else None
+    siblings = (
+        parent.children.filter(is_active=True).exclude(pk=service.pk)
+        if parent else Service.objects.none()
+    )
     context = {
         'service': service,
         'partners': ServicePartner.objects.filter(is_active=True),
-
+        'concepts': service.children.filter(is_active=True),
+        'parent': parent,
+        'siblings': siblings,
     }
     return render(request, 'contents/service_detail.html', context)
 

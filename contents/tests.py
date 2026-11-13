@@ -17,7 +17,7 @@ from PIL import Image
 from .constants import SEASON_HUB_SLUG
 from .models import (
     AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
-    ServiceProgramItem,
+    ServiceFormBlock, ServiceProgramItem,
 )
 from .seed import season2027 as seed_data
 
@@ -237,6 +237,8 @@ class SeedSeason2027Tests(MediaTestCase):
             [('102', 'Корпоративных клиента'), ('334', 'Корпоративных мероприятия'),
              ('114', 'Тимбилдингов и квестов'), ('92', 'Бизнес-мероприятия')],
         )
+        # порядок цифр на странице — прежний (по id), а не как отдаст база после обновления
+        self.assertEqual([b.number for b in about.benefits.all()], ['102', '334', '114', '92'])
         # «282» на утренниках — цифра самой услуги, остаётся
         self.assertCountEqual(matinee_about.benefits.values_list('number', flat=True), ['45', '102', '282'])
         self.assertEqual(Service.objects.get(pk=teambuilding.pk).order, 20)
@@ -306,3 +308,86 @@ class SeedSeason2027Tests(MediaTestCase):
                 for field, value in row.items():
                     for forbidden in seed_data.FORBIDDEN_STRINGS:
                         self.assertNotIn(forbidden, (value or '').lower(), f'{model.__name__}.{field}')
+
+
+class ServiceDetailTests(MediaTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.hub = make_service(SEASON_HUB_SLUG, program_title='Как мы работаем')
+        ServiceProgramItem.objects.create(service=cls.hub, label='01', title='Выбираете концепцию', order=10)
+        common = dict(parent=cls.hub, badge='Новинка 2027', price_from='от 6 000 000 ₸')
+        cls.teleport = make_service('teleport-2037', card_title='TELEPORT 2037', accent='teleport', order=20, **common)
+        cls.legends = make_service(
+            'legends', card_title='LEGENDS', accent='legends', order=10, program_title='Программа вечера',
+            hero_button_text='Получить презентацию',
+            pdf_file=SimpleUploadedFile('legends-2027.pdf', b'%PDF-1.4'), **common,
+        )
+        ServiceAbout.objects.create(service=cls.legends, title='О концепции', description='Идея')
+        ServiceFormBlock.objects.create(service=cls.legends, title='Получите презентацию', subtitle='Оставьте заявку')
+        cls.immersive = make_service('immersive-show', card_title='IMMERSIVE SHOW', accent='immersive', order=30, **common)
+        cls.hidden = make_service('skrytaya', parent=cls.hub, order=5, is_active=False)
+        ServiceProgramItem.objects.create(
+            service=cls.legends, label='18:00–19:00', title='Welcome', description='Ожившие легенды', order=10
+        )
+        cls.legends.items.create(title='Звезда компании', description='Арт-объект')
+        cls.plain = make_service('obychnaya-usluga', card_title='Обычная услуга')
+
+    def get(self, service):
+        return self.client.get(reverse('contents:service_detail', args=[service.slug]))
+
+    def test_hub_lists_active_concepts_in_order(self):
+        response = self.get(self.hub)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context['concepts']), [self.legends, self.teleport, self.immersive])
+        self.assertIsNone(response.context['parent'])
+        self.assertContains(response, 'id="concepts"')
+        self.assertContains(response, 'id="program"')
+        self.assertContains(response, 'Как мы работаем')
+        self.assertContains(response, 'theme-teleport')  # карточка несёт акцент концепции
+        self.assertNotContains(response, 'id="other-concepts"')
+        self.assertNotContains(response, 'skrytaya')
+
+    def test_concept_page(self):
+        response = self.get(self.legends)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['parent'], self.hub)
+        self.assertEqual(list(response.context['siblings']), [self.teleport, self.immersive])
+        self.assertContains(response, 'class="themed theme-legends"')
+        self.assertContains(response, 'id="program"')
+        self.assertContains(response, '18:00–19:00')
+        self.assertContains(response, 'Тайминг предварительный')
+        self.assertContains(response, 'id="other-concepts"')
+        self.assertContains(response, f'data-pdf-url="{self.legends.pdf_file.url}"')
+        self.assertContains(response, 'Новинка 2027')
+        self.assertContains(response, 'от 6 000 000 ₸')
+        self.assertContains(response, reverse('contents:service_detail', args=[self.hub.slug]))
+        self.assertNotContains(response, 'id="concepts"')
+        # источник заявки называет концепцию — у кнопок hero и «Заказать проект» и у инлайн-формы
+        self.assertContains(response, 'data-source="Скачать Получить презентацию - LEGENDS"')
+        self.assertContains(response, 'data-source="Кнопка Заказать проект - LEGENDS"')
+        self.assertContains(response, 'data-service-name="LEGENDS"')
+        self.assertContains(response, 'О КОНЦЕПЦИИ')
+        self.assertContains(response, 'Фишки')
+
+    def test_concept_without_pdf_has_no_pdf_attribute(self):
+        response = self.get(self.teleport)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'data-pdf-url="/')
+
+    def test_plain_service_has_no_season_sections(self):
+        response = self.get(self.plain)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['concepts'])
+        self.assertIsNone(response.context['parent'])
+        for marker in ('id="concepts"', 'id="program"', 'id="other-concepts"', 'themed', 'class="badge'):
+            self.assertNotContains(response, marker)
+
+    def test_inactive_page_is_404(self):
+        self.assertEqual(self.get(self.hidden).status_code, 404)
+
+    def test_concept_of_inactive_parent_has_no_back_link(self):
+        Service.objects.filter(pk=self.hub.pk).update(is_active=False)
+        response = self.get(self.legends)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['parent'])
+        self.assertFalse(response.context['siblings'])

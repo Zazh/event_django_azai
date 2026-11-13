@@ -26,12 +26,22 @@
   .gallery-item img { display:block; -webkit-transform: translateZ(0); }
 </style>
 
+<div{% if service.accent %} class="themed theme-{{ service.accent }}"{% endif %}>
 <section class="hero">
   <div class="pt-[4.5rem]">
-    <div class="text-center flex flex-col gap-3">
-      <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
+    <div class="text-center flex flex-col gap-3 px-4">
+      {% if parent %}
+      <a href="{% url 'contents:service_detail' parent.slug %}" class="hero-back">← Новый год 2027</a>
+      {% endif %}
+      <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Events</h3>
+      {% if service.badge %}
+      <div class="flex justify-center"><span class="badge">{{ service.badge }}</span></div>
+      {% endif %}
       <h1 class="h1 font-bold text-brand-600">{{ service.hero_title|safe }}</h1>
       <h2 class="text-gray-500 md:text-lg">{{ service.hero_subtitle|safe }}</h2>
+      {% if service.price_from %}
+      <p class="price-from md:text-2xl text-xl pt-2">{{ service.price_from }}</p>
+      {% endif %}
     </div>
     {% if service.hero_button_text %}
     <div class="flex justify-center py-8">
@@ -63,11 +73,13 @@
   </div>
 </section>
 
+{% include 'contents/includes/concepts.html' %}
+
 {% if service.about %}
 <section class="py-16">
   <div class="grid grid-cols-12 gap-4 px-4">
     <div class="lg:col-span-4 col-span-full">
-      <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
+      <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">{% if parent %}О КОНЦЕПЦИИ{% else %}О НАС{% endif %}</h1>
     </div>
     <div class="lg:col-span-8 col-span-full">
       <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.about.title|safe }}</h1>
@@ -78,7 +90,7 @@
       </div>
         <button class="btn-outline"
                 data-open-form
-                data-source="Кнопка Заказать проект - услуги {{ service.hero_subtitle }}"
+                data-source="Кнопка Заказать проект - {{ service.card_title }}"
                 {% if service.pdf_file %}data-pdf-url="{{ service.pdf_file.url }}"{% endif %}>
             Заказать проект
         </button>
@@ -109,7 +121,7 @@
 <section class="pt-9 pb-12">
     <div class="grid grid-cols-12 gap-4 px-4 py-6">
       <div class="lg:col-span-4 col-span-full">
-        <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Услуги</span>
+        <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">{% if parent %}Фишки{% else %}Услуги{% endif %}</span>
       </div>
       <div class="lg:col-span-8 col-span-full">
         <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.service_title|safe }}</h1>
@@ -117,10 +129,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-14 pt-14">
             {% for item in service.items.all %}
             <div>
+                {% if item.svg_path %}
                 <span class="mb-6">
                   {{ item.svg_path|safe }}
                 </span>
-                <h3 class=" font-bold text-black text-xl pt-6 pb-2">{{ item.title|safe }}</h3>
+                {% endif %}
+                <h3 class=" font-bold text-black text-xl {% if item.svg_path %}pt-6 {% endif %}pb-2">{{ item.title|safe }}</h3>
                 <p class="text-gray-500 leading-5">{{ item.description|safe }}</p>
             </div>
             {% endfor %}
@@ -130,6 +144,8 @@
     </div>
 </section>
 {% endif %}
+
+{% include 'contents/includes/program.html' %}
 
 {% if service.location %}
 <section class="pt-9 pb-12 border-t border-gray-300">
@@ -225,6 +241,9 @@
     </div>
 </section>
 {% endif %}
+
+{% include 'contents/includes/siblings.html' %}
+</div>
 
 <script>
     // Обработка формы заявки на странице услуги

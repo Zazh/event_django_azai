@@ -96,6 +96,7 @@ class Command(BaseCommand):
             for concept in data.CONCEPTS:
                 self.seed_concept(concept, hub)
             self.seed_placement()
+            self.pin_stats_order()
             self.seed_service_stats()
             self.seed_home()
             self.seed_contact()
@@ -276,6 +277,21 @@ class Command(BaseCommand):
             if changed:
                 service.save(update_fields=changed)
                 self.mark(f'страница {slug}: {", ".join(changed)}')
+
+    def pin_stats_order(self):
+        """Закрепляет порядок цифр, который сайт показывает сейчас, — до их правки.
+
+        У прежних страниц порядок не задан (везде 0) и держится на порядке строк в базе;
+        обновление строки его меняет, и цифры на странице переставляются.
+        """
+        for about in ServiceAbout.objects.select_related('service'):
+            rows = list(about.benefits.all())  # Meta.ordering = ['order']: при равенстве — как отдаёт база
+            if len({row.order for row in rows}) == len(rows):
+                continue
+            for index, row in enumerate(rows):
+                row.order = (index + 1) * 10
+            ServiceBenefit.objects.bulk_update(rows, ['order'])
+            self.mark(f'{about.service.slug}: порядок цифр закреплён')
 
     def seed_service_stats(self):
         """Прежние общие цифры компании на страницах услуг → новые (по старому значению)."""

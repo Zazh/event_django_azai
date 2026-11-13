@@ -1,0 +1,15 @@
+{# «Другие концепции» под формой на странице концепции. #}
+{% if siblings %}
+<section id="other-concepts" class="pt-9 pb-12 border-t border-gray-300">
+  <div class="grid grid-cols-12 gap-4 px-4 py-6">
+    <div class="lg:col-span-4 col-span-full">
+      <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Другие концепции</span>
+    </div>
+    <div class="lg:col-span-8 col-span-full grid md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-10">
+      {% for concept in siblings %}
+        {% include 'contents/includes/concept_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

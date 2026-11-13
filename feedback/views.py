@@ -17,9 +17,11 @@ COMPANY_PLACEHOLDER = 'Не указано'
 
 
 def _text(data, key):
-    """Строковое значение поля без пробелов по краям; не строка или пусто — ''."""
+    """Значение поля заявки: без пробелов по краям, не длиннее поля модели; не строка — ''."""
     value = data.get(key)
-    return value.strip() if isinstance(value, str) else ''
+    if not isinstance(value, str):
+        return ''
+    return value.strip()[:FeedbackRequest._meta.get_field(key).max_length]
 
 
 @csrf_exempt

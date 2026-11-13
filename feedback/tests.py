@@ -75,6 +75,12 @@ class SubmitFeedbackTests(TestCase):
         self.assertFalse(response.json()['telegram_sent'])
         self.assertEqual(FeedbackRequest.objects.count(), 1)
 
+    def test_long_values_are_cut_to_field_length(self):
+        # источник собирается из текстов страницы и может оказаться длиннее поля — заявка не должна падать
+        response = self.post({'full_name': 'Айгерим', 'phone': '+7 701 000 0000', 'source': 'и' * 300})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(FeedbackRequest.objects.get().source), 200)
+
     def test_invalid_json(self):
         response = self.client.post(self.url, data='не json', content_type='application/json')
         self.assert_rejected(response, 'Неверный формат данных')

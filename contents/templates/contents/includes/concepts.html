@@ -1,0 +1,19 @@
+{# Секция «Концепции» на странице-хабе: дочерние страницы услуги. #}
+{% if concepts %}
+<section id="concepts" class="pt-9 pb-12">
+  <div class="grid grid-cols-12 gap-4 px-4 py-6">
+    <div class="lg:col-span-4 col-span-full">
+      <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Концепции</span>
+    </div>
+    <div class="lg:col-span-8 col-span-full">
+      <h2 class="md:text-4xl md:leading-11 text-3xl font-semibold">Выберите концепцию вечера</h2>
+      <p class="text-gray-500 md:text-lg pt-4 xl:max-w-[85%]">Каждая концепция — готовый сценарий с программой по времени. Любую масштабируем под бюджет и число гостей.</p>
+    </div>
+    <div class="col-span-full grid md:grid-cols-3 grid-cols-1 gap-x-6 gap-y-10 pt-8">
+      {% for concept in concepts %}
+        {% include 'contents/includes/concept_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

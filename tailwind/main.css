@@ -21,6 +21,17 @@
     --color-brand-900:  #2B0B10; /* тёмный бордо: тёмные подложки, ховер и нажатие */
     --color-accent-600: #C2101B; /* красный: бейджи и цифры-акценты */
     --color-cream-50:   #FBF7F3; /* кремовая подложка */
+
+    /* Акценты страниц концепций (Service.accent), замер по обложкам презентаций */
+    --color-legends-900:   #1F0303; /* LEGENDS: чёрно-бордовый фон hero */
+    --color-legends-700:   #510508; /* LEGENDS: бордо портьер — метки на светлом */
+    --color-legends-300:   #DAA265; /* LEGENDS: золото */
+    --color-teleport-900:  #111721; /* TELEPORT 2037: графит */
+    --color-teleport-600:  #2366A0; /* TELEPORT 2037: синий — метки на светлом */
+    --color-teleport-400:  #4F9ADE; /* TELEPORT 2037: электрик-синий */
+    --color-immersive-100: #F6E8DC; /* IMMERSIVE: светлое золото — фон hero */
+    --color-immersive-400: #C19370; /* IMMERSIVE: золото */
+    --color-immersive-700: #936D56; /* IMMERSIVE: тёмное золото — метки на светлом */
     --color-red-500:    #FF2C2C;
 }
 
@@ -147,6 +158,79 @@
 .btn-outline {
     @apply border-[2px] border-brand-600 text-brand-600 px-7 py-4 rounded-full text-sm font-bold cursor-pointer hover:bg-brand-600 hover:text-white
 }
+
+/* ===== Сезон: бейдж, цена «от», карточка концепции, метки программы =====
+   Цвета берутся из переменных темы; вне темы — токены бренда. */
+.badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+    background-color: var(--theme-badge-bg, var(--color-accent-600));
+    color: var(--theme-badge-fg, white);
+}
+.price-from {
+    @apply font-semibold;
+    color: var(--theme-label, var(--color-brand-600));
+}
+.program-label,
+.concept-card-more {
+    color: var(--theme-label, var(--color-brand-600));
+}
+.concept-card a:hover h3 {
+    color: var(--theme-label, var(--color-brand-600));
+}
+.hero-back {
+    @apply text-sm text-gray-500 hover:text-brand-600;
+}
+
+/* ===== Темы-акценты страниц концепций: обёртка `themed theme-<accent>` =====
+   Тема красит hero (фон, заголовок, кнопка), бейдж и метки; тело страницы остаётся светлым. */
+.theme-legends {
+    --theme-hero-bg: var(--color-legends-900);
+    --theme-hero-title: var(--color-legends-300);
+    --theme-hero-text: color-mix(in srgb, white 85%, transparent);
+    --theme-hero-muted: color-mix(in srgb, white 60%, transparent);
+    --theme-btn-bg: var(--color-legends-300);
+    --theme-btn-fg: var(--color-legends-900);
+    --theme-btn-hover: white;
+    --theme-badge-bg: var(--color-legends-300);
+    --theme-badge-fg: var(--color-legends-900);
+    --theme-label: var(--color-legends-700);
+}
+.theme-teleport {
+    --theme-hero-bg: var(--color-teleport-900);
+    --theme-hero-title: white;
+    --theme-hero-text: color-mix(in srgb, white 85%, transparent);
+    --theme-hero-muted: var(--color-teleport-400);
+    --theme-btn-bg: var(--color-teleport-400);
+    --theme-btn-fg: var(--color-teleport-900);
+    --theme-btn-hover: white;
+    --theme-badge-bg: var(--color-teleport-400);
+    --theme-badge-fg: var(--color-teleport-900);
+    --theme-label: var(--color-teleport-600);
+}
+.theme-immersive {
+    --theme-hero-bg: var(--color-immersive-100);
+    --theme-hero-title: var(--color-brand-600);
+    --theme-hero-text: var(--color-gray-600);
+    --theme-hero-muted: var(--color-immersive-700);
+    --theme-btn-bg: var(--color-brand-600);
+    --theme-btn-fg: white;
+    --theme-btn-hover: var(--color-brand-900);
+    --theme-badge-bg: var(--color-immersive-400);
+    --theme-badge-fg: var(--color-brand-900);
+    --theme-label: var(--color-immersive-700);
+}
+.themed .hero { background-color: var(--theme-hero-bg); }
+.themed .hero h1 { color: var(--theme-hero-title); }
+.themed .hero h2 { color: var(--theme-hero-text); }
+.themed .hero h3,
+.themed .hero .hero-back { color: var(--theme-hero-muted); }
+.themed .hero .hero-back:hover,
+.themed .hero .price-from { color: var(--theme-hero-title); }
+.themed .hero .btn-main {
+    background-color: var(--theme-btn-bg);
+    color: var(--theme-btn-fg);
+}
+.themed .hero .btn-main:hover { background-color: var(--theme-btn-hover); }
 
 .accordion-content {
     transition: max-height 0.3s ease, opacity 0.3s ease;

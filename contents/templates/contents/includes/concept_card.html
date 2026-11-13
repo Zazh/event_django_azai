@@ -1,0 +1,17 @@
+{# Карточка концепции: хаб, «Другие концепции», «Новинки» на главной. Переменная — concept. #}
+<article class="concept-card{% if concept.accent %} themed theme-{{ concept.accent }}{% endif %}">
+  <a href="{% url 'contents:service_detail' concept.slug %}" class="flex flex-col h-full">
+    <div class="relative aspect-video overflow-hidden">
+      <img src="{{ concept.card_image.url }}" alt="{{ concept.card_title }}" class="w-full h-full object-cover" loading="lazy">
+      {% if concept.badge %}<span class="badge absolute top-3 left-3">{{ concept.badge }}</span>{% endif %}
+    </div>
+    <div class="flex flex-col grow pt-4">
+      <h3 class="text-xl md:text-2xl font-bold">{{ concept.card_title }}</h3>
+      <p class="text-gray-500 text-sm leading-relaxed pt-2 pb-4">{{ concept.card_description }}</p>
+      <div class="flex items-center justify-between gap-4 mt-auto pt-3 border-t border-gray-300">
+        {% if concept.price_from %}<span class="price-from">{{ concept.price_from }}</span>{% endif %}
+        <span class="concept-card-more text-sm font-bold ml-auto">Подробнее →</span>
+      </div>
+    </div>
+  </a>
+</article>

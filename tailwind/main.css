@@ -1,0 +1,316 @@
+@import "tailwindcss";
+
+/* Классы берутся из Django-шаблонов; после правки шаблона — pnpm build. */
+@source "../templates";
+@source "../contents/templates";
+/* Классы из контента админки (в шаблонах их нет): перенос строки в текстах
+   (<br class="hidden md:block">) и SVG-иконки соцсетей. Новый класс в контенте — дописать сюда. */
+@source inline("hidden md:block size-10 md:size-12 text-black hover:text-gray-500");
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto+Mono:wght@500&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@theme {
+    --color-stone-50:   #F2F3F3;
+    --color-gray-500:   #7D7D7D;
+    --color-gray-600:   #4D4D4D;
+    --color-gray-700:   #868686;
+    --color-gray-800:   #2B2B2B;
+    --color-green-600:  #1B3C39;
+    --bg-green-600:     #1B3C39;
+    --color-red-500:    #FF2C2C;
+}
+
+.button-brand {
+    @apply bg-green-600 hover:bg-green-800 text-white px-5 py-4 rounded-full font-bold text-sm tracking-wide flex items-center gap-1;
+}
+
+#pins {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    width: 72px;
+    height: 64px;
+}
+
+#pins li {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: pinCycle 4s infinite;
+}
+
+/* Задержки для каждого пина */
+#pins li:nth-child(1) { animation-delay: 0s; }
+#pins li:nth-child(2) { animation-delay: 1s; }
+#pins li:nth-child(3) { animation-delay: 2s; }
+#pins li:nth-child(4) { animation-delay: 3s; }
+
+@keyframes pinCycle {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    24.9% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    25% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* Helvetica Neue */
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('./fonts/HelveticaNeue-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('./fonts/HelveticaNeue-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('./fonts/HelveticaNeue-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('./fonts/HelveticaNeue-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@layer base {
+    :root {
+        --default-font-family: "Roboto Flex", sans-serif;
+    }
+}
+
+@layer utilities {
+    .h1 {
+        @apply md:leading-13 md:text-[3rem] text-3xl;
+    }
+    .menu-item {
+        @apply px-5 py-3.5 rounded-full text-sm text-gray-600 hover:bg-white/50 cursor-pointer tracking-wide;
+    }
+    .menu-item.active {
+        @apply bg-white text-green-600;
+    }
+    .text-accent-500 {
+        font-family: 'Helvetica Neue', serif;
+        font-weight: 500;
+    }
+}
+
+.header {
+    @apply grid md:grid-cols-5 grid-cols-2 items-center w-full py-3 px-4;
+}
+.brand {
+    @apply col-span-1;
+}
+.navbar {
+    @apply justify-center col-span-3 hidden md:flex;
+}
+.header-actions {
+    @apply flex justify-end col-span-1;
+}
+.menu {
+    @apply flex items-center justify-center gap-3 bg-stone-50 p-1 rounded-full;
+}
+
+.btn-default {
+    @apply px-7 py-4.5 bg-green-600 text-white rounded-full text-sm font-bold cursor-pointer hover:bg-black;
+}
+.btn-main {
+    @apply px-7 py-5 bg-green-600 text-white rounded-full font-bold cursor-pointer hover:bg-black;
+}
+.btn-link {
+    @apply cursor-pointer hover:text-gray-500;
+}
+.btn-outline {
+    @apply border-[2px] border-green-600 text-green-600 px-7 py-4 rounded-full text-sm font-bold cursor-pointer hover:bg-green-600 hover:text-white
+}
+
+.accordion-content {
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+.accordion-icon .horizontal-line {
+    transform: rotate(-90deg);
+}
+
+.item.active .accordion-icon .horizontal-line {
+    transform: rotate(-45deg);
+}
+.item-title {
+    @apply flex justify-between items-center cursor-pointer hover:text-blue-600;
+}
+.item-number {
+    @apply lg:col-span-4 hidden lg:flex cursor-pointer;
+}
+
+@media (min-width: 768px) {
+    #burgerBtn {
+        display: none;
+    }
+}
+
+/* Анимация для меню */
+#sideMenu {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Анимация для оверлея */
+#menuOverlay {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.case-image {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Плавная анимация для текста */
+.case-content {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Контейнер галереи с overflow */
+.gallery-container {
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+}
+
+.gallery-container:active {
+    cursor: grabbing;
+}
+
+/* Трек с изображениями */
+.gallery-track {
+    display: flex;
+    align-items: end;
+    gap: 1rem;
+    width: fit-content;
+    transition: transform 0.1s ease-out;
+
+}
+
+/* Анимация прокрутки влево */
+.gallery-track.auto-scroll {
+    animation: scroll-left 40s linear infinite;
+}
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Стили для карточек */
+.gallery-item {
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Запрет перетаскивания изображений */
+.gallery-item img {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .gallery-track {
+        gap: 0.75rem;
+    }
+    .gallery-track.auto-scroll {
+        animation-duration: 25s;
+    }
+}
+
+/* Контейнер слайдера */
+.partners-container {
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+}
+
+.partners-container:active {
+    cursor: grabbing;
+}
+
+/* Трек со слайдами */
+.partners-track {
+    display: flex;
+    gap: 1rem; /* 16px */
+    width: fit-content;
+    transition: transform 0.1s ease-out;
+}
+
+/* Анимация автопрокрутки */
+.partners-track.auto-scroll {
+    animation: scroll-partners 30s linear infinite;
+}
+
+@keyframes scroll-partners {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Карточка партнёра */
+.partner-card {
+    flex-shrink: 0;
+    width: 160px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    user-select: none;
+    transition: transform 0.3s ease;
+}
+
+.partner-card:hover {
+    transform: scale(1.05);
+}
+
+/* Запрет перетаскивания SVG */
+.partner-card svg {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .partners-track.auto-scroll {
+        animation-duration: 20s;
+    }
+}
+

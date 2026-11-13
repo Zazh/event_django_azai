@@ -1,0 +1,17 @@
+{
+  "name": "dne-styles",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Сборка static/dist/styles.css (Tailwind 4). Собранный файл коммитится; на проде ничего не собирается.",
+  "scripts": {
+    "build": "NODE_ENV=production postcss main.css -o ../static/dist/styles.css",
+    "dev": "postcss main.css -o ../static/dist/styles.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

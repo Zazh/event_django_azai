@@ -81,3 +81,5 @@ Thumbs.db
 *.temp
 tmp/
 temp/
+# Сборка CSS
+/tailwind/node_modules/

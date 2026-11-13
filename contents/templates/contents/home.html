@@ -12,13 +12,16 @@
     {% if hero %}
     <section class="hero">
         <div class="pt-[4.5rem]">
-            <div class="text-center flex flex-col gap-3">
-                <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Event</h3>
+            <div class="text-center flex flex-col gap-3 px-4">
+                <h3 class="text-gray-500 md:text-lg text-sm uppercase tracking-widest text-accent-500">Dana Nurzhuma Events</h3>
                 <h1 class="h1 font-bold text-brand-600">{{ hero.title|safe }}</h1>
                 <h2 class="text-gray-500 md:text-lg">{{ hero.subtitle|safe }}</h2>
             </div>
-            <div class="flex justify-center py-8">
+            <div class="flex flex-wrap justify-center items-center gap-3 py-8 px-4">
                 <button class="btn-main" data-open-form data-source="{{ hero.button_link }}">{{ hero.button_text }}</button>
+                {% if season_hub %}
+                <a href="{% url 'contents:service_detail' season_hub.slug %}" class="btn-outline">Смотреть концепции</a>
+                {% endif %}
             </div>
             <div class="flex justify-center py-8 px-4">
                 <div class="relative rounded-[28px] overflow-hidden w-full max-w-screen-xl">
@@ -67,9 +70,28 @@
     {% endif %}
 
 
+    <!-- NOVELTIES BLOCK: услуги с бейджем («Новинка 2027») -->
+    {% if novelties %}
+    <section id="novelties" class="py-12">
+        <div class="grid grid-cols-12 gap-4 px-4">
+            <div class="lg:col-span-4 col-span-full">
+                <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Новинки 2027</span>
+            </div>
+            <div class="lg:col-span-8 col-span-full">
+                <h2 class="md:text-4xl md:leading-11 text-3xl font-semibold">Новое в сезоне 2026–2027</h2>
+            </div>
+            <div class="col-span-full grid md:grid-cols-3 grid-cols-1 gap-x-6 gap-y-10 pt-8">
+                {% for concept in novelties %}
+                    {% include 'contents/includes/concept_card.html' %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- ABOUT BLOCK -->
     {% if about %}
-    <section id="#about" class="py-12">
+    <section id="about" class="py-12">
         <div class="grid grid-cols-12 gap-4 px-4">
             <div class="lg:col-span-4 col-span-full">
                 <h1 class="text-gray-500 text-xl uppercase tracking-wider font-bold">О НАС</h1>
@@ -84,7 +106,7 @@
                 <button class="btn-outline" data-open-form data-source="Кнопка Заказать проект - Главная Блок О нас">Заказать проект</button>
 
                 <div class="pt-16">
-                    <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-y-12 gap-x-4">
+                    <ul class="grid md:grid-cols-4 grid-cols-2 md:gap-x-4 md:gap-y-12 gap-y-12 gap-x-4">
                         {% for benefit in about.benefits.all %}
                         <li class="flex flex-col justify-between gap-8">
                             <span class="text-gray-500 md:text-xl text-accent-500 leading-6">{{ benefit.title|safe }}</span>
@@ -98,17 +120,45 @@
     </section>
     {% endif %}
 
+    <!-- DIRECTIONS BLOCK: два направления, ссылки — на якоря списка услуг -->
+    {% if service_groups %}
+    <section id="directions" class="py-12">
+        <div class="grid grid-cols-12 gap-4 px-4">
+            <div class="lg:col-span-4 col-span-full">
+                <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Направления</span>
+            </div>
+            <div class="lg:col-span-8 col-span-full grid md:grid-cols-2 grid-cols-1 gap-4">
+                {% for group in service_groups %}
+                <a href="{% url 'contents:services_list' %}#{{ group.key }}" class="direction-card">
+                    <h2 class="md:text-3xl text-2xl font-semibold">{{ group.label }}</h2>
+                    <p class="text-gray-500 pt-3 pb-8">{{ group.description }}</p>
+                    <span class="text-sm font-bold text-brand-600 mt-auto">Услуги направления →</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- SERVICES BLOCK -->
-    {% if services %}
-    <!-- Аккордеон с услугами -->
+    {% if service_groups %}
+    <!-- Аккордеон с услугами: группы по направлениям, нумерация сквозная -->
     <section class="py-12">
         <div class="border-gray-300 border-b">
-            <!-- Пункт 1 -->
-            {% for service in services %}
-            <div class="item {% if forloop.first %} active{% endif %}" data-accordion-item>
+            {% for group in service_groups %}
+            <div class="grid grid-cols-12 gap-4 px-4 border-gray-300 border-t py-4 bg-cream-50">
+                <div class="lg:col-span-4 col-span-full">
+                    <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">{{ group.label }}</span>
+                </div>
+                <div class="lg:col-span-8 col-span-full">
+                    <span class="text-gray-500">{{ group.description }}</span>
+                </div>
+            </div>
+            {% for service in group.services %}
+            <div class="item {% if service.number == 1 %} active{% endif %}" data-accordion-item>
                 <div class="grid grid-cols-12 gap-4 px-4 border-gray-300 border-t py-6">
                     <div class="item-number" data-accordion-trigger>
-                        <span class="text-gray-500 text-2xl uppercase font-mono font-semibold">{{ forloop.counter|stringformat:"02d" }}.</span>
+                        <span class="text-gray-500 text-2xl uppercase font-mono font-semibold">{{ service.number|stringformat:"02d" }}.</span>
                     </div>
                     <div class="lg:col-span-8 col-span-full">
                         <div class="item-title" data-accordion-trigger>
@@ -152,6 +202,7 @@
                 </div>
             </div>
             {% endfor %}
+            {% endfor %}
 
         </div>
     </section>
@@ -185,7 +236,7 @@
         </div>
         <div class="lg:col-span-8 col-span-full">
             <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">
-                Моменты из праздников которые мы <br>провели для клиентов за 12 лет работы
+                Моменты из праздников, которые мы <br class="hidden md:block">проводим для клиентов с 2013 года
             </h1>
             <div class="pt-4">
                 <a href="https://disk.yandex.kz/i/FbvdxNO51GoJeg" class="btn-outline text-accent-500 inline-flex">Смотреть портфолио</a>

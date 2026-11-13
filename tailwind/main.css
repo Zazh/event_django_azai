@@ -180,6 +180,10 @@
 .hero-back {
     @apply text-sm text-gray-500 hover:text-brand-600;
 }
+/* Карточка направления на главной (DN Events / DN Production) */
+.direction-card {
+    @apply flex flex-col bg-cream-50 rounded-2xl md:p-8 p-6 hover:bg-stone-50;
+}
 
 /* ===== Темы-акценты страниц концепций: обёртка `themed theme-<accent>` =====
    Тема красит hero (фон, заголовок, кнопка), бейдж и метки; тело страницы остаётся светлым. */

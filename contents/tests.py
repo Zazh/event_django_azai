@@ -498,3 +498,85 @@ class PublicPagesContentTests(MediaTestCase):
                 html = response.content.decode().lower()
                 for forbidden in seed_data.FORBIDDEN_STRINGS:
                     self.assertNotIn(forbidden, html)
+
+
+class HomeAndServicesListTests(MediaTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.hub = make_service(SEASON_HUB_SLUG, card_title='Новый год 2027', order=10)
+        common = dict(parent=cls.hub, badge='Новинка 2027', price_from='от 6 000 000 ₸')
+        cls.concepts = [
+            make_service('legends', card_title='LEGENDS', accent='legends', order=10, **common),
+            make_service('teleport-2037', card_title='TELEPORT 2037', accent='teleport', order=20, **common),
+            make_service('immersive-show', card_title='IMMERSIVE SHOW', accent='immersive', order=30, **common),
+        ]
+        cls.gifts = make_service('detskie-novogodnie-podarki', card_title='Детские подарки', direction='production', order=20)
+        cls.teambuilding = make_service('korporativy-i-timbildingi', card_title='Тимбилдинги', order=20)
+
+    def test_home_novelties_and_groups(self):
+        response = self.client.get(reverse('contents:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context['novelties']), self.concepts)
+        groups = response.context['service_groups']
+        self.assertEqual([group['key'] for group in groups], ['events', 'production'])
+        self.assertEqual(groups[0]['services'], [self.hub, self.teambuilding])
+        self.assertEqual(groups[1]['services'], [self.gifts])
+        # сквозная нумерация аккордеона: раскрыт только первый пункт первой группы
+        self.assertEqual([s.number for g in groups for s in g['services']], [1, 2, 3])
+        self.assertContains(response, 'class="item  active"', count=1)
+        self.assertContains(response, '>03.</span>')
+        self.assertContains(response, 'id="novelties"')
+        self.assertContains(response, 'id="directions"')
+        self.assertContains(response, 'id="about"', count=0)  # блока «О нас» в этой базе нет
+        self.assertContains(response, f'{reverse("contents:services_list")}#events')
+        self.assertContains(response, f'{reverse("contents:services_list")}#production')
+
+    def test_home_hero_links_to_hub(self):
+        HeroBlock.objects.create(title='Новый год 2027', subtitle='Три концепции', button_text='Заявка', button_link='главная')
+        response = self.client.get(reverse('contents:home'))
+        self.assertContains(response, 'class="btn-outline">Смотреть концепции</a>')
+        self.assertContains(response, 'Dana Nurzhuma Events</h3>')
+
+    def test_home_without_novelties_has_no_block(self):
+        Service.objects.filter(parent=self.hub).update(show_on_homepage=False)
+        response = self.client.get(reverse('contents:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['novelties'])
+        self.assertNotContains(response, 'id="novelties"')
+
+    def test_home_on_empty_database(self):
+        Service.objects.all().delete()
+        response = self.client.get(reverse('contents:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['service_groups'], [])
+        self.assertNotContains(response, 'id="directions"')
+
+    def test_services_list_grouped_without_children(self):
+        response = self.client.get(reverse('contents:services_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="events"')
+        self.assertContains(response, 'id="production"')
+        listed = [service for group in response.context['service_groups'] for service in group['services']]
+        self.assertEqual(listed, [self.hub, self.teambuilding, self.gifts])
+        for concept in self.concepts:
+            self.assertNotContains(response, reverse('contents:service_detail', args=[concept.slug]))
+        self.assertLess(response.content.index(b'id="events"'), response.content.index(b'id="production"'))
+
+    def test_services_list_shows_badge_and_price(self):
+        Service.objects.filter(pk=self.gifts.pk).update(badge='Каталог 2027', price_from='от 5 000 ₸')
+        response = self.client.get(reverse('contents:services_list'))
+        self.assertContains(response, 'Каталог 2027')
+        self.assertContains(response, 'от 5 000 ₸')
+
+    def test_services_list_with_single_direction(self):
+        Service.objects.filter(direction='production').delete()
+        response = self.client.get(reverse('contents:services_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="events"')
+        self.assertNotContains(response, 'id="production"')
+
+    def test_services_list_empty(self):
+        Service.objects.all().delete()
+        response = self.client.get(reverse('contents:services_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Услуги пока не добавлены')

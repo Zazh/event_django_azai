@@ -336,7 +336,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             formSource.value = source;
         }
 
-        if (formPdfUrl && pdfUrl) {
+        // PDF — только той кнопки, что открыла форму: иначе PDF прошлой кнопки «залипает»
+        // (reset() не очищает hidden-поле) и откроется после заявки через «Связаться»
+        if (formPdfUrl) {
             formPdfUrl.value = pdfUrl;
         }
 

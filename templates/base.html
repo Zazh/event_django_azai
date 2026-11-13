@@ -23,7 +23,7 @@
     <!-- Теги Open Graph для лучшего отображения при шаринге в социальных сетях -->
     <meta property="og:title" content="{% block og_title %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{% endblock %}">
-    <meta property="og:image" content="https://www.dananurzhumaevents.kz/dist/images/og-image.jpg">
+    <meta property="og:image" content="https://dananurzhumaevents.kz{% static 'dist/images/og-image.jpg' %}">
     <meta property="og:url" content="https://www.dananurzhumaevents.kz">
     <meta property="og:type" content="website">
 
@@ -60,18 +60,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <nav class="navbar">
             <ul class="menu">
                 <li>
-                    <a href="{% url 'contents:home' %}" class="flex menu-item text-accent-500 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-                        Главная
-                    </a>
+                    <a href="{% url 'contents:home' %}" class="flex text-accent-500 menu-item{% if nav_active == 'home' %} active{% endif %}">Главная</a>
                 </li>
-<!--                <li>-->
-<!--                    <a href="{% url 'contents:home' %}#about" class="flex text-accent-500 menu-item">О нас</a>-->
-<!--                </li>-->
+                {% if season_hub %}
                 <li>
-                    <a href="{% url 'contents:services_list' %}" class="flex text-accent-500 menu-item {% if request.resolver_match.url_name == 'services_list' or request.resolver_match.url_name == 'service_detail' %}active{% endif %}">Услуги</a>
+                    <a href="{% url 'contents:service_detail' season_hub.slug %}" class="flex text-accent-500 menu-item{% if nav_active == 'season' %} active{% endif %}">Новый год 2027</a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'contents:services_list' %}" class="flex text-accent-500 menu-item{% if nav_active == 'services' %} active{% endif %}">Услуги</a>
                 </li>
                 <li>
-                    <a href="{% url 'contents:contacts' %}" class="flex text-accent-500 menu-item {% if request.resolver_match.url_name == 'contacts' %}active{% endif %}">Контакты</a>
+                    <a href="{% url 'contents:contacts' %}" class="flex text-accent-500 menu-item{% if nav_active == 'contacts' %} active{% endif %}">Контакты</a>
                 </li>
             </ul>
         </nav>
@@ -105,17 +105,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
 
             <div class="py-12">
-                <ul class="flex justify-center md:gap-16 gap-6">
-                    <li class="text-gray-700 {% if request.resolver_match.url_name == 'home' %}text-white{% endif %}">
+                <ul class="flex flex-wrap justify-center md:gap-x-16 gap-x-4 gap-y-3">
+                    <li class="text-gray-700{% if nav_active == 'home' %} text-white{% endif %}">
                         <a href="{% url 'contents:home' %}">Главная</a>
                     </li>
-<!--                    <li class="text-gray-700">-->
-<!--                        <a href="{% url 'contents:home' %}#about">О нас</a>-->
-<!--                    </li>-->
-                    <li class="text-gray-700 {% if request.resolver_match.url_name == 'services_list' or request.resolver_match.url_name == 'service_detail' %}text-white{% endif %}">
+                    {% if season_hub %}
+                    <li class="text-gray-700{% if nav_active == 'season' %} text-white{% endif %}">
+                        <a href="{% url 'contents:service_detail' season_hub.slug %}">Новый год 2027</a>
+                    </li>
+                    {% endif %}
+                    <li class="text-gray-700{% if nav_active == 'services' %} text-white{% endif %}">
                         <a href="{% url 'contents:services_list' %}">Услуги</a>
                     </li>
-                    <li class="text-gray-700 {% if request.resolver_match.url_name == 'contacts' %}text-white{% endif %}">
+                    <li class="text-gray-700{% if nav_active == 'contacts' %} text-white{% endif %}">
                         <a href="{% url 'contents:contacts' %}">Контакты</a>
                     </li>
                 </ul>
@@ -123,12 +125,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
             <div class="w-full md:w-[80%] m-auto">
                 <div class="border-y-1 border-gray-800 pb-4">
-                    <p class="text-sm text-gray-700 text-center py-8">DNE — организация мероприятий в Астане и по Казахстану под ключ для корпоративных клиентов. Мы специализируемся на B2B-мероприятиях любого масштаба: новогодние корпоративы, детские утренники, тимбилдинги, брендированные подарки и корпоративный мерч. Более 10 лет опыта, креативный подход и полный цикл организации — от идеи до реализации. DNE — надёжный партнёр для вашего бизнес-праздника.</p>
+                    <p class="text-sm text-gray-700 text-center py-8">Dana Nurzhuma Events — больше, чем события. С 2013 года закрываем задачи компаний по принципу одного окна. DN Events — корпоративные события, шоу и тимбилдинги под ключ. DN Production — подарки, мерч, одежда, полиграфия, реклама и снабжение офиса. Работаем по всему Казахстану: офис — в Астане, филиал — в Алматы.</p>
                 </div>
             </div>
 
+            {% if site_contact %}
+            <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm pt-8">
+                <a href="tel:{{ site_contact.phone|cut:' ' }}" class="hover:text-gray-500">{{ site_contact.phone }}</a>
+                {% if site_contact.phone_extra %}
+                <a href="tel:{{ site_contact.phone_extra|cut:' ' }}" class="hover:text-gray-500">{{ site_contact.phone_extra }}</a>
+                {% endif %}
+                <a href="mailto:{{ site_contact.email }}" class="hover:text-gray-500">{{ site_contact.email }}</a>
+            </div>
+            {% endif %}
+
             <div>
-                <p class="text-sm text-center pt-8">ТОО “Dana Nurzhuma Events” ©2013-2025 год</p>
+                <p class="text-sm text-center pt-8">ТОО “Dana Nurzhuma Events” ©2013–{% now "Y" %}</p>
             </div>
         </div>
     {% endblock %}
@@ -211,16 +223,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <nav class="flex-1 overflow-y-auto p-6">
             <ul class="space-y-3 text-gray-700">
                 <li>
-                    <a href="{% url 'contents:home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-black{% endif %} block uppercase tracking-widest text-accent-500  hover:text-brand-600 transition">Главная</a>
+                    <a href="{% url 'contents:home' %}" class="{% if nav_active == 'home' %}text-black {% endif %}block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Главная</a>
                 </li>
-<!--                <li>-->
-<!--                    <a href="#" class=" block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">О нас</a>-->
-<!--                </li>-->
+                {% if season_hub %}
                 <li>
-                    <a href="{% url 'contents:services_list' %}" class="{% if request.resolver_match.url_name == 'services_list' or request.resolver_match.url_name == 'service_detail' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Услуги</a>
+                    <a href="{% url 'contents:service_detail' season_hub.slug %}" class="{% if nav_active == 'season' %}text-black {% endif %}block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Новый год 2027</a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'contents:services_list' %}" class="{% if nav_active == 'services' %}text-black {% endif %}block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Услуги</a>
                 </li>
                 <li>
-                    <a href="{% url 'contents:contacts' %}" class="{% if request.resolver_match.url_name == 'contacts' %}text-black{% endif %} block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Контакты</a>
+                    <a href="{% url 'contents:contacts' %}" class="{% if nav_active == 'contacts' %}text-black {% endif %}block uppercase tracking-widest text-accent-500 hover:text-brand-600 transition">Контакты</a>
                 </li>
             </ul>
 

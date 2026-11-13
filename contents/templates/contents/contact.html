@@ -29,13 +29,19 @@
         <li>
           <h3 class="pb-6 text-gray-500 font-medium">Телефон</h3>
           <div class="flex flex-col gap-2 text-black">
-            <a href="tel:{{ contact.phone }}" class="hover:text-brand-600">{{ contact.phone }}</a>
+            <a href="tel:{{ contact.phone|cut:' ' }}" class="hover:text-brand-600">{{ contact.phone }}</a>
+            {% if contact.phone_extra %}
+            <a href="tel:{{ contact.phone_extra|cut:' ' }}" class="hover:text-brand-600">{{ contact.phone_extra }}</a>
+            {% endif %}
           </div>
         </li>
         <li>
           <h3 class="pb-6 text-gray-500 font-medium">Адрес</h3>
           <div class="flex flex-col gap-2 text-black">
             <a class="hover:text-brand-600 font-medium" href="{{ contact.map_link }}">{{ contact.address }}</a>
+            {% if contact.branches %}
+            <p class="text-gray-500">{{ contact.branches }}</p>
+            {% endif %}
           </div>
         </li>
       </ul>

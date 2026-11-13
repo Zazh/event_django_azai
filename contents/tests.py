@@ -391,3 +391,110 @@ class ServiceDetailTests(MediaTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.context['parent'])
         self.assertFalse(response.context['siblings'])
+
+
+class ShellTests(MediaTestCase):
+    """Каркас: пункт меню «Новый год 2027», подвал, контакты."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.hub = make_service(SEASON_HUB_SLUG)
+        cls.concept = make_service('legends', parent=cls.hub, accent='legends')
+        cls.plain = make_service('obychnaya-usluga')
+        cls.contact = Contact.objects.create(
+            company_name='ТОО “Dana Nurzhuma Events”', email='dananurzhumaevents@mail.ru',
+            phone='+7 701 263 5557', phone_extra='+7 778 002 5557', address='г. Астана',
+            map_link='https://example.com/map', branches='Филиал — Алматы.',
+        )
+        cls.hub_url = reverse('contents:service_detail', args=[SEASON_HUB_SLUG])
+
+    def test_season_item_links_to_hub(self):
+        response = self.client.get(reverse('contents:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['season_hub'], self.hub)
+        # шапка, подвал, боковое меню
+        self.assertContains(response, '>Новый год 2027</a>', count=3)
+        self.assertContains(response, f'href="{self.hub_url}"')
+        self.assertContains(response, 'menu-item">Новый год 2027</a>')
+        self.assertContains(response, 'menu-item active">Главная</a>')
+
+    def test_no_season_item_without_active_hub(self):
+        for label, change in (('неактивен', lambda: Service.objects.filter(pk=self.hub.pk).update(is_active=False)),
+                              ('удалён', lambda: Service.objects.filter(pk=self.hub.pk).delete())):
+            with self.subTest(label):
+                change()
+                response = self.client.get(reverse('contents:home'))
+                self.assertEqual(response.status_code, 200)
+                self.assertIsNone(response.context['season_hub'])
+                self.assertNotContains(response, 'Новый год 2027')
+
+    def test_season_item_active_on_hub_and_concept(self):
+        for service in (self.hub, self.concept):
+            with self.subTest(service=service.slug):
+                response = self.client.get(reverse('contents:service_detail', args=[service.slug]))
+                self.assertEqual(response.context['nav_active'], 'season')
+                self.assertContains(response, 'menu-item active">Новый год 2027</a>')
+                self.assertContains(response, 'menu-item">Услуги</a>')
+
+    def test_services_item_active_on_plain_service_and_list(self):
+        for url in (reverse('contents:service_detail', args=[self.plain.slug]), reverse('contents:services_list')):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.context['nav_active'], 'services')
+                self.assertContains(response, 'menu-item active">Услуги</a>')
+                self.assertContains(response, 'menu-item">Новый год 2027</a>')
+
+    def test_footer_has_contacts_and_current_year(self):
+        from datetime import date
+        response = self.client.get(reverse('contents:home'))
+        self.assertContains(response, 'href="tel:+77012635557"')
+        self.assertContains(response, 'href="tel:+77780025557"')
+        self.assertContains(response, 'href="mailto:dananurzhumaevents@mail.ru"')
+        self.assertContains(response, f'©2013–{date.today().year}')
+        self.assertContains(response, 'DN Production')
+
+    def test_og_image_points_to_static(self):
+        response = self.client.get(reverse('contents:home'))
+        self.assertContains(
+            response, 'property="og:image" content="https://dananurzhumaevents.kz/static/dist/images/og-image.jpg"'
+        )
+
+    def test_contacts_page_shows_both_phones_and_branches(self):
+        response = self.client.get(reverse('contents:contacts'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['nav_active'], 'contacts')
+        self.assertContains(response, '+7 701 263 5557')
+        self.assertContains(response, '+7 778 002 5557')
+        self.assertContains(response, 'Филиал — Алматы.')
+
+    def test_contacts_page_without_contact(self):
+        Contact.objects.all().delete()
+        response = self.client.get(reverse('contents:contacts'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['site_contact'])
+
+
+class PublicPagesContentTests(MediaTestCase):
+    """На страницах с контентом сезона нет ошибочных адресов из материалов заказчицы."""
+
+    @classmethod
+    def setUpTestData(cls):
+        Contact.objects.create(
+            company_name='ТОО', email='dananurzhumaevents@mail.ru', phone='+7 701 263 5557',
+            address='г. Астана', map_link='https://example.com/map',
+        )
+        call_command('seed_season2027', stdout=io.StringIO())
+
+    def test_no_forbidden_strings_on_public_pages(self):
+        urls = [
+            reverse('contents:home'), reverse('contents:services_list'), reverse('contents:contacts'),
+            reverse('contents:service_detail', args=[SEASON_HUB_SLUG]),
+            *(reverse('contents:service_detail', args=[slug]) for slug in ('legends', 'teleport-2037', 'immersive-show')),
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                html = response.content.decode().lower()
+                for forbidden in seed_data.FORBIDDEN_STRINGS:
+                    self.assertNotIn(forbidden, html)

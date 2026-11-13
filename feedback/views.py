@@ -8,6 +8,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Обязательные поля заявки и сообщение, если поле пустое
+REQUIRED_FIELDS = (
+    ('full_name', 'Укажите ФИО'),
+    ('phone', 'Укажите телефон'),
+)
+COMPANY_PLACEHOLDER = 'Не указано'
+
+
+def _text(data, key):
+    """Строковое значение поля без пробелов по краям; не строка или пусто — ''."""
+    value = data.get(key)
+    return value.strip() if isinstance(value, str) else ''
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -15,22 +28,26 @@ def submit_feedback(request):
     """API endpoint для приема заявок"""
     try:
         data = json.loads(request.body)
+        if not isinstance(data, dict):
+            return JsonResponse({
+                'success': False,
+                'error': 'Неверный формат данных'
+            }, status=400)
 
-        # Валидация обязательных полей
-        required_fields = ['full_name', 'phone', 'company']
-        for field in required_fields:
-            if not data.get(field):
+        # Валидация обязательных полей (пробелы считаются пустым значением)
+        for field, message in REQUIRED_FIELDS:
+            if not _text(data, field):
                 return JsonResponse({
                     'success': False,
-                    'error': f'Поле {field} обязательно для заполнения'
+                    'error': message
                 }, status=400)
 
-        # Создаем заявку
+        # Создаем заявку; компания необязательна — правило одно для всех форм сайта
         feedback = FeedbackRequest.objects.create(
-            full_name=data.get('full_name'),
-            phone=data.get('phone'),
-            company=data.get('company'),
-            source=data.get('source', 'Неизвестно')
+            full_name=_text(data, 'full_name'),
+            phone=_text(data, 'phone'),
+            company=_text(data, 'company') or COMPANY_PLACEHOLDER,
+            source=_text(data, 'source') or 'Неизвестно'
         )
 
         # Отправляем в Telegram

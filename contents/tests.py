@@ -1,15 +1,25 @@
 import io
 import shutil
 import tempfile
+import unicodedata
+from pathlib import Path
 
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
+from django.db.models import CharField, TextField
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .models import Contact, Service, ServiceProgramItem
+from .constants import SEASON_HUB_SLUG
+from .models import (
+    AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
+    ServiceProgramItem,
+)
+from .seed import season2027 as seed_data
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp(prefix='dne-test-media-')
 
@@ -146,3 +156,153 @@ class AdminSmokeTests(MediaTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="phone_extra"')
         self.assertContains(response, 'name="branches"')
+
+
+class SeedSeason2027Tests(MediaTestCase):
+    CONCEPT_SLUGS = ['legends', 'teleport-2037', 'immersive-show']
+
+    def run_seed(self, **options):
+        out = io.StringIO()
+        call_command('seed_season2027', stdout=out, **options)
+        return out.getvalue()
+
+    @staticmethod
+    def row_counts():
+        return {model.__name__: model.objects.count() for model in apps.get_app_config('contents').get_models()}
+
+    def test_empty_database_creates_hub_and_concepts(self):
+        self.run_seed()
+        hub = Service.objects.get(slug=SEASON_HUB_SLUG)
+        self.assertIsNone(hub.parent)
+        self.assertEqual(hub.direction, 'events')
+        self.assertEqual(hub.program_title, 'Как мы работаем')
+        self.assertEqual([step.label for step in hub.program.all()], ['01', '02', '03'])
+        hub.full_clean()
+
+        concepts = list(Service.objects.filter(parent=hub).order_by('order'))
+        self.assertEqual([c.slug for c in concepts], self.CONCEPT_SLUGS)
+        for concept in concepts:
+            with self.subTest(concept=concept.slug):
+                self.assertEqual(concept.badge, 'Новинка 2027')
+                self.assertEqual(concept.price_from, 'от 6 000 000 ₸')
+                self.assertTrue(concept.accent)
+                self.assertTrue(concept.show_on_homepage)
+                self.assertGreaterEqual(concept.items.count(), 4)
+                self.assertGreaterEqual(concept.program.count(), 10)
+                self.assertGreaterEqual(concept.gallery.count(), 3)
+                self.assertTrue(concept.about.benefits.count() <= 4)
+                self.assertEqual(concept.form_block.button_text, 'Получить презентацию')
+                self.assertFalse(concept.items.exclude(svg_path='').exists())
+                # админка должна суметь сохранить всё, что завёл сид
+                concept.full_clean()
+                concept.about.full_clean()
+                concept.form_block.full_clean()
+                for row in [*concept.items.all(), *concept.program.all(), *concept.gallery.all()]:
+                    row.full_clean()
+
+    def test_second_run_changes_nothing(self):
+        self.run_seed()
+        before = self.row_counts()
+        output = self.run_seed()
+        self.assertEqual(self.row_counts(), before)
+        self.assertIn('создано 0, обновлено 0', output)
+
+    def test_old_company_stats_replaced(self):
+        old = [('1000+', 'Проведенных мероприятий'), ('395', 'Корпоративов и банкетов'),
+               ('184', 'Тимбилдингов и квестов'), ('282', 'Корпоративного утренника')]
+        about_block = AboutBlock.objects.create(title='Dana Nurzhuma Event', description='Старое')
+        for number, title in old:
+            Benefit.objects.create(about_block=about_block, number=number, title=title)
+        teambuilding = make_service('korporativy-i-timbildingi')
+        about = ServiceAbout.objects.create(service=teambuilding, title='О нас', description='Текст')
+        for number, title in old:
+            ServiceBenefit.objects.create(service_about=about, number=number, title=title)
+        matinee = make_service('detskie-novogodnie-utrenniki')
+        matinee_about = ServiceAbout.objects.create(service=matinee, title='О нас', description='Текст')
+        for number, title in [('45', 'Шоу (мин)'), ('1000+', 'Проведенных ивентов'), ('282', 'Провели утренников')]:
+            ServiceBenefit.objects.create(service_about=matinee_about, number=number, title=title)
+
+        self.run_seed()
+
+        about_block.refresh_from_db()
+        self.assertEqual(about_block.title, 'Больше, чем события')
+        self.assertEqual(
+            [b.number for b in about_block.benefits.all()], ['334', '114', '92', '186', '102', '22']
+        )
+        for number in ('1000+', '395', '184'):
+            self.assertFalse(Benefit.objects.filter(number=number).exists(), number)
+            self.assertFalse(ServiceBenefit.objects.filter(number=number).exists(), number)
+        self.assertCountEqual(
+            about.benefits.values_list('number', 'title'),
+            [('102', 'Корпоративных клиента'), ('334', 'Корпоративных мероприятия'),
+             ('114', 'Тимбилдингов и квестов'), ('92', 'Бизнес-мероприятия')],
+        )
+        # «282» на утренниках — цифра самой услуги, остаётся
+        self.assertCountEqual(matinee_about.benefits.values_list('number', flat=True), ['45', '102', '282'])
+        self.assertEqual(Service.objects.get(pk=teambuilding.pk).order, 20)
+        self.assertEqual(Service.objects.get(pk=matinee.pk).order, 30)
+
+    def test_existing_hub_keeps_content_and_loses_pdf(self):
+        hub = make_service(
+            SEASON_HUB_SLUG, card_description='Прежнее описание',
+            pdf_file=SimpleUploadedFile('ny2026.pdf', b'%PDF-1.4'),
+        )
+        hub.items.create(title='Оформление локации', description='Что входит', svg_path='<svg></svg>')
+        self.run_seed()
+        hub.refresh_from_db()
+        self.assertFalse(hub.pdf_file)
+        self.assertEqual(hub.card_title, 'Новый год 2027 — корпоратив под ключ')
+        self.assertEqual(hub.card_description, 'Прежнее описание')
+        self.assertEqual(hub.items.count(), 1)
+        self.assertEqual(hub.price_from, 'от 6 000 000 ₸')
+
+    def test_home_and_contact_updated(self):
+        hero = HeroBlock.objects.create(
+            title='Создаём праздники', subtitle='Старый', button_text='Кнопка', button_link='источник'
+        )
+        contact = Contact.objects.create(
+            company_name='ТОО', email='dananurzhumaevents@mail.ru', phone='+7 701 263 5557',
+            address='г. Астана', map_link='https://example.com/map',
+        )
+        self.run_seed()
+        hero.refresh_from_db()
+        contact.refresh_from_db()
+        self.assertIn('Новый год 2027', hero.title)
+        self.assertEqual(hero.button_text, 'Кнопка')
+        self.assertEqual(contact.phone_extra, '+7 778 002 5557')
+        self.assertIn('Алматы', contact.branches)
+        self.assertEqual(contact.phone, '+7 701 263 5557')
+
+    def test_pdf_attached_under_clean_name(self):
+        with tempfile.TemporaryDirectory() as pdf_dir:
+            # имя как на macOS — в разложенной форме юникода
+            source = Path(pdf_dir, unicodedata.normalize('NFD', 'Презентация Легенды.pdf'))
+            source.write_bytes(b'%PDF-1.4 legends')
+            output = self.run_seed(pdf_dir=pdf_dir)
+            legends = Service.objects.get(slug='legends')
+            self.assertEqual(legends.pdf_file.name, 'services/pdfs/legends-2027.pdf')
+            self.assertEqual(legends.pdf_file.read(), b'%PDF-1.4 legends')
+            self.assertFalse(Service.objects.get(slug='teleport-2037').pdf_file)
+            self.assertIn('не найден', output)  # двух других презентаций в каталоге нет
+            # повторный запуск не плодит файлы и строки
+            self.assertIn('создано 0, обновлено 0', self.run_seed(pdf_dir=pdf_dir))
+            legends.refresh_from_db()
+            self.assertEqual(legends.pdf_file.name, 'services/pdfs/legends-2027.pdf')
+
+    def test_without_pdf_dir_pdf_untouched(self):
+        self.run_seed()
+        legends = Service.objects.get(slug='legends')
+        legends.pdf_file = SimpleUploadedFile('manual.pdf', b'%PDF-1.4 manual')
+        legends.save()
+        self.run_seed()
+        legends.refresh_from_db()
+        self.assertIn('manual', legends.pdf_file.name)
+
+    def test_no_forbidden_strings_in_content(self):
+        self.run_seed()
+        for model in apps.get_app_config('contents').get_models():
+            names = [f.name for f in model._meta.get_fields() if isinstance(f, (CharField, TextField))]
+            for row in model.objects.values(*names):
+                for field, value in row.items():
+                    for forbidden in seed_data.FORBIDDEN_STRINGS:
+                        self.assertNotIn(forbidden, (value or '').lower(), f'{model.__name__}.{field}')

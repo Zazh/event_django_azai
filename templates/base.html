@@ -8,6 +8,7 @@
 
     <title>{% block seo_title %}DNE{% endblock %}</title>
 
+    {% if gtm_enabled %}
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -15,6 +16,7 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-KTNX7X8M');</script>
     <!-- End Google Tag Manager -->
+    {% endif %}
 
     <!-- SEO мета-теги -->
     <meta name="description" content="{% block seo_description %}{% endblock %}">
@@ -24,7 +26,7 @@
     <meta property="og:title" content="{% block og_title %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{% endblock %}">
     <meta property="og:image" content="https://dananurzhumaevents.kz{% static 'dist/images/og-image.jpg' %}">
-    <meta property="og:url" content="https://www.dananurzhumaevents.kz">
+    <meta property="og:url" content="https://dananurzhumaevents.kz{{ request.path }}">
     <meta property="og:type" content="website">
 
     <!-- Фавиконки -->
@@ -42,10 +44,12 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
+{% if gtm_enabled %}
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KTNX7X8M"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
+{% endif %}
 
     <!-- Header -->
     <header class="header">

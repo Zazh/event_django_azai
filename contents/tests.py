@@ -655,6 +655,19 @@ class ShellTests(MediaTestCase):
             response, 'property="og:image" content="https://dananurzhumaevents.kz/static/dist/images/og-image.jpg"'
         )
 
+    def test_og_url_is_current_page_on_prod_domain(self):
+        for url in (reverse('contents:home'), reverse('contents:service_detail', args=[self.plain.slug])):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, f'property="og:url" content="https://dananurzhumaevents.kz{url}"')
+
+    def test_gtm_only_without_debug(self):
+        # dev-стенд (DEBUG=True) не пишет в боевую аналитику
+        for debug, count in ((True, 0), (False, 2)):
+            with self.subTest(debug=debug), override_settings(DEBUG=debug):
+                response = self.client.get(reverse('contents:home'))
+                self.assertContains(response, 'googletagmanager', count=count)
+
     def test_contacts_page_shows_both_phones_and_branches(self):
         response = self.client.get(reverse('contents:contacts'))
         self.assertEqual(response.status_code, 200)

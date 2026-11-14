@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from .constants import SEASON_HUB_SLUG
 from .models import Contact, Service
 
@@ -11,7 +13,10 @@ NAV_BY_URL_NAME = {
 
 
 def site(request):
-    """Общее для каркаса (шапка, подвал, боковое меню): сезонный хаб, контакты, активный пункт."""
+    """Общее для каркаса (шапка, подвал, боковое меню): сезонный хаб, контакты, активный пункт.
+
+    `gtm_enabled` — аналитика только на проде: dev-стенд (DEBUG=True) в боевой GTM не пишет.
+    """
     season_hub = Service.objects.filter(slug=SEASON_HUB_SLUG, is_active=True).first()
     match = request.resolver_match
     url_name = match.url_name if match and match.namespace == 'contents' else ''
@@ -25,4 +30,5 @@ def site(request):
         'season_hub': season_hub,
         'site_contact': Contact.objects.filter(is_active=True).first(),
         'nav_active': nav_active,
+        'gtm_enabled': not settings.DEBUG,
     }

@@ -4,7 +4,8 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key-change-me')
+# Секреты — без значений по умолчанию: нет переменной в окружении/.env — старт падает
+SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
@@ -75,7 +76,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME', default='db'),
         'USER': config('DB_USER', default='postgresuser'),
-        'PASSWORD': config('DB_PASSWORD', default='kb971033'),
+        'PASSWORD': config('DB_PASSWORD'),  # пустая строка допустима (CI)
         'HOST': config('DB_HOST', default='db'),
         'PORT': config('DB_PORT', default='5432'),
     }

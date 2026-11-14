@@ -244,6 +244,15 @@ class SeedSeason2027Tests(MediaTestCase):
         self.assertEqual([step.label for step in page.program.all()], ['01', '02', '03', '04'])
         self.assertEqual(page.hero_button_text, 'Получить каталог')
 
+    def test_clothing_catalog(self):
+        self.run_seed()
+        page = Service.objects.get(slug='korporativnaya-odezhda-i-specodezhda')
+        self.assertEqual(page.order, 30)
+        self.assertGreaterEqual(page.categories.count(), 17)
+        self.assertFalse(page.categories.filter(price_from='').exists())
+        self.assertIn('100', page.items.first().title)  # первое условие — тираж от 100 штук
+        self.assertFalse(page.program.exists())
+
     def test_second_run_changes_nothing(self):
         self.run_seed()
         before = self.row_counts()

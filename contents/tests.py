@@ -268,7 +268,7 @@ class SeedSeason2027Tests(MediaTestCase):
         merch = products.get(title='Корпоративная одежда и мерч')
         self.assertEqual(merch.link, reverse('contents:service_detail', args=['korporativnaya-odezhda-i-specodezhda']))
         response = self.client.get(reverse('contents:service_detail', args=[page.slug]))
-        self.assertContains(response, f'href="{merch.link}" class="catalog-card-cta"')
+        self.assertContains(response, f'<a href="{merch.link}" class="catalog-card')  # карточка целиком — ссылка
         self.assertContains(response, '>Рекламные услуги<')
 
     def test_kids_gifts_page_updated_in_place(self):
@@ -544,7 +544,8 @@ class ServiceCatalogTests(MediaTestCase):
              ('Наборы', ['Набор сотрудника'])],
         )
         self.assertContains(response, 'id="catalog"')
-        self.assertContains(response, 'catalog-group', count=2)  # заголовки разделов, основной список без заголовка
+        self.assertContains(response, 'catalog-group', count=3)  # слева у каждого раздела; основной список — название страницы
+        self.assertContains(response, '>Корпоративные подарки</h2>')
         html = response.content.decode()
         positions = [html.index(text) for text in ('Для рабочего стола', 'Термосы', 'Текстиль', '>Еврокорзины<', 'Базовый премиум', '>Наборы<')]
         self.assertEqual(positions, sorted(positions))
@@ -560,14 +561,9 @@ class ServiceCatalogTests(MediaTestCase):
     def test_catalog_button_opens_form_with_pdf(self):
         response = self.get(self.gifts)
         self.assertContains(response, 'data-source="Кнопка под каталогом - Корпоративные подарки"')
-        # hero, кнопка под каталогом и кнопка «Рассчитать» каждой из шести карточек
-        self.assertContains(response, f'data-pdf-url="{self.gifts.pdf_file.url}"', count=2 + 6)
-
-    def test_category_card_button_names_category(self):
-        response = self.get(self.gifts)
-        # источник заявки и заголовок модалки (текст кнопки) называют категорию
-        self.assertContains(response, 'data-source="Категория: Термосы - Корпоративные подарки"')
-        self.assertContains(response, '<span class="sr-only">Рассчитать: Термосы</span>', html=False)
+        # hero и кнопка под каталогом; на карточках кнопок нет
+        self.assertContains(response, f'data-pdf-url="{self.gifts.pdf_file.url}"', count=2)
+        self.assertNotContains(response, 'Категория:')
         self.assertNotContains(response, 'Цена по запросу')
 
     def test_page_without_categories_has_no_catalog(self):

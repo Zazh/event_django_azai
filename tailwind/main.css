@@ -174,10 +174,6 @@
 .concept-card a:hover h3 {
     color: var(--theme-label, var(--color-brand-600));
 }
-/* Карточка категории каталога: круглая кнопка «Рассчитать» / «Подробнее» в строке цены */
-.catalog-card-cta {
-    @apply inline-flex shrink-0 items-center justify-center md:size-10 size-9 rounded-full border border-gray-300 bg-white text-brand-600 cursor-pointer transition hover:bg-brand-600 hover:border-brand-600 hover:text-white;
-}
 .hero-back {
     @apply text-sm text-gray-500 hover:text-brand-600;
 }

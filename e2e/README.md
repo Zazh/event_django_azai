@@ -10,7 +10,7 @@
 | `layout.md` | каркас: шапка, модалка, боковое меню | `mobile-menu`, `modal-pdf-reset` |
 | `home.md` | главная | `sections`, `novelties`, `directions` |
 | `service.md` | страница услуги: хаб и концепции | `concept-request`, `hub-request`, `no-company` |
-| `catalog.md` | страница-каталог DN Production | `catalog-request`, `sections`, `card-request`, `eurobaskets`, `admin-category` |
+| `catalog.md` | страница-каталог DN Production | `catalog-request`, `sections`, `eurobaskets`, `admin-category` |
 | `services-list.md` | список услуг | `groups` |
 
 Имя спеки — `<файл без .md>:<сценарий>`, например `service:concept-request`: так она

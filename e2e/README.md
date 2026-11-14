@@ -10,6 +10,8 @@
 | `layout.md` | каркас: шапка, модалка, боковое меню | `mobile-menu`, `modal-pdf-reset` |
 | `home.md` | главная | `sections`, `novelties`, `directions` |
 | `service.md` | страница услуги: хаб и концепции | `concept-request`, `hub-request`, `no-company` |
+| `catalog.md` | страница-каталог DN Production | `catalog-request`, `sections`, `eurobaskets`, `admin-category` |
+| `services-list.md` | список услуг | `groups` |
 
 Имя спеки — `<файл без .md>:<сценарий>`, например `service:concept-request`: так она
 называется в доках и в строке приёмки «Списано e2e: …».
@@ -35,6 +37,9 @@
   на `<iframe>` шириной 393 и положить в `srcdoc` HTML страницы, полученный `fetch`, с
   `<base href="http://localhost:8000/">` в `<head>`. Переходы по ссылкам внутри такого iframe
   блокируются тем же заголовком — `href` проверять, следующую страницу грузить так же.
-- **Прокрутка вбок**: `document.documentElement.scrollWidth` равен ширине окна.
+- **Прокрутка вбок**: `document.documentElement.scrollWidth` равен ширине окна. Бегущие ленты
+  (`.auto-scroll`: галерея, клиенты) шире экрана по замыслу — их обрезает `overflow-hidden`.
+- **«Заявки нет»** проверять по базе, не перехватом `fetch`: GTM сам шлёт запросы.
+- **Пустые карточки на скриншоте** — `loading="lazy"`: картинки грузятся при прокрутке.
 - GTM вшит в `base.html` без условия — визиты dev-стенда попадают в боевую аналитику (хвост
   бэклога season-2027, до его закрытия — держать число прогонов минимальным).

@@ -10,7 +10,9 @@
    `/services/korporativnye-vecherinki-pod-klyuch/`, `/services/korporativy-i-timbildingi/`,
    `/services/detskie-novogodnie-utrenniki/`, `/services/detskie-novogodnie-podarki/`.
 2. Новые (блок 1): `/services/legends/`, `/services/teleport-2037/`,
-   `/services/immersive-show/`.
+   `/services/immersive-show/`; (блок 2): `/services/korporativnye-podarki/`,
+   `/services/korporativnaya-odezhda-i-specodezhda/`,
+   `/services/brendirovannaya-produkciya-i-snabzhenie-ofisa/`.
 3. Несуществующий: `/services/nonexistent/`.
 4. Со всех страниц шагов 1–2 собрать адреса `/media/…` и `/static/…` (включая те, что лежат в
    JS галерей) и запросить каждый.

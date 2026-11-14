@@ -101,9 +101,9 @@ class Command(BaseCommand):
         with transaction.atomic():
             hub = self.seed_hub()
             for concept in data.CONCEPTS:
-                self.seed_concept(concept, hub)
+                self.seed_page(concept, {**data.CONCEPT_COMMON, 'parent_id': hub.pk})
             for catalog in data.CATALOGS:
-                self.seed_catalog(catalog)
+                self.seed_page(catalog, data.CATALOG_COMMON)
             self.seed_placement()
             self.pin_stats_order()
             self.seed_service_stats()
@@ -148,15 +148,22 @@ class Command(BaseCommand):
         self.sync_program(hub, spec['program'])
         return hub
 
-    # --- концепции ----------------------------------------------------------------------
+    # --- концепции и каталоги DN Production ---------------------------------------------
 
-    def seed_concept(self, spec, hub):
+    def seed_page(self, spec, common):
+        """Страница из спецификации сида; блоки синхронизируются, только если заданы в ней.
+
+        `card_image` — картинка сида (прежний файл удаляется), `create_image` — только для
+        новой страницы: у детских подарков карточка-картинка прода остаётся.
+        """
         service = Service.objects.filter(slug=spec['slug']).first()
         created = service is None
         if created:
             service = Service(slug=spec['slug'])
-        changed = set_fields(service, {**data.CONCEPT_COMMON, **spec['fields'], 'parent_id': hub.pk})
-        if not image_matches(service.card_image, spec['card_image']):
+            if 'create_image' in spec:
+                service.card_image = seed_image(spec['create_image'])
+        changed = set_fields(service, {**common, **spec['fields']})
+        if 'card_image' in spec and not image_matches(service.card_image, spec['card_image']):
             if service.card_image:
                 service.card_image.delete(save=False)
             service.card_image = seed_image(spec['card_image'])
@@ -167,33 +174,7 @@ class Command(BaseCommand):
             service.save()
             self.mark(f'страница {service.slug}' + ('' if created else f': {", ".join(changed)}'), created)
 
-        self.sync_about(service, spec['about'])
-        self.sync_items(service, spec['items'])
-        self.sync_program(service, spec['program'])
-        self.sync_gallery(service, spec['gallery'])
-        self.sync_form(service, spec['form'])
-
-    # --- каталоги DN Production --------------------------------------------------------
-
-    def seed_catalog(self, spec):
-        """Страница-каталог: как концепция, но без родителя и галереи; блоки — только заданные."""
-        service = Service.objects.filter(slug=spec['slug']).first()
-        created = service is None
-        if created:
-            service = Service(slug=spec['slug'])
-            if 'create_image' in spec:
-                service.card_image = seed_image(spec['create_image'])
-        changed = set_fields(service, {**data.CATALOG_COMMON, **spec['fields']})
-        if 'card_image' in spec and not image_matches(service.card_image, spec['card_image']):
-            service.card_image = seed_image(spec['card_image'])  # прежний файл остаётся в медиа
-            changed.append('card_image')
-        if self.attach_pdf(service, *spec['pdf']):
-            changed.append('pdf_file')
-        if created or changed:
-            service.save()
-            self.mark(f'страница {service.slug}' + ('' if created else f': {", ".join(changed)}'), created)
-
-        for block in ('about', 'categories', 'items', 'program', 'form'):
+        for block in ('about', 'categories', 'items', 'program', 'gallery', 'form'):
             if block in spec:
                 getattr(self, f'sync_{block}')(service, spec[block])
 

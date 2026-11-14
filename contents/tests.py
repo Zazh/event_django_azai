@@ -688,6 +688,9 @@ class PublicPagesContentTests(MediaTestCase):
                 html = response.content.decode().lower()
                 for forbidden in seed_data.FORBIDDEN_STRINGS:
                     self.assertNotIn(forbidden, html)
+                # многострочный {# … #} Django выводит текстом — комментарий в шаблонах только однострочный
+                self.assertNotIn('{#', html)
+                self.assertNotIn('{%', html)
 
 
 class HomeAndServicesListTests(MediaTestCase):

@@ -1,0 +1,19 @@
+{# Карточка категории каталога: тот же примитив, что concept_card.html, но без ссылки. Переменная — category. #}
+<article class="concept-card flex flex-col h-full">
+  {% if category.image %}
+  <div class="relative aspect-video overflow-hidden">
+    <img src="{{ category.image.url }}" alt="{{ category.title }}" class="w-full h-full object-cover" loading="lazy">
+  </div>
+  {% endif %}
+  <div class="flex flex-col grow{% if category.image %} pt-4{% endif %}">
+    <h3 class="text-xl md:text-2xl font-bold">{{ category.title }}</h3>
+    {% if category.description %}
+    <p class="text-gray-500 text-sm leading-relaxed pt-2 pb-4">{{ category.description|linebreaksbr }}</p>
+    {% endif %}
+    {% if category.price_from %}
+    <div class="flex items-center justify-between gap-4 mt-auto pt-3 border-t border-gray-300">
+      <span class="price-from">{{ category.price_from }}</span>
+    </div>
+    {% endif %}
+  </div>
+</article>

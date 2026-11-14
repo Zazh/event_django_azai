@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from .models import PortfolioItem, Case, Service, ServiceGallery, ServiceLocation
+from .models import PortfolioItem, Case, Service, ServiceCategory, ServiceGallery, ServiceLocation
 from .utils import optimize_image
 
 
@@ -30,6 +30,13 @@ def optimize_gallery_image(sender, instance, **kwargs):
     """Оптимизация изображений для ServiceGallery"""
     if instance.image and not instance.image.name.endswith('.webp'):
         instance.image = optimize_image(instance.image, max_width=1200, quality=90)
+
+
+@receiver(pre_save, sender=ServiceCategory)
+def optimize_category_image(sender, instance, **kwargs):
+    """Оптимизация изображений для ServiceCategory: карточка в сетке — хватает 700px"""
+    if instance.image and not instance.image.name.endswith('.webp'):
+        instance.image = optimize_image(instance.image)
 
 
 @receiver(pre_save, sender=ServiceLocation)

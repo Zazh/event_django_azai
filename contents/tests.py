@@ -17,7 +17,7 @@ from PIL import Image
 from .constants import SEASON_HUB_SLUG
 from .models import (
     AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
-    ServiceFormBlock, ServiceProgramItem,
+    ServiceCategory, ServiceFormBlock, ServiceProgramItem,
 )
 from .seed import season2027 as seed_data
 
@@ -148,6 +148,14 @@ class AdminSmokeTests(MediaTestCase):
         choices = response.context['adminform'].form.fields['parent'].queryset
         self.assertIn(self.hub, choices)
         self.assertNotIn(self.child, choices)
+
+    def test_service_change_form_has_category_inline(self):
+        ServiceCategory.objects.create(service=self.hub, title='Подарки', price_from='от 7 000 ₸')
+        response = self.client.get(reverse('admin:contents_service_change', args=[self.hub.pk]))
+        self.assertEqual(response.status_code, 200)
+        for field in ('group', 'title', 'price_from', 'description', 'image', 'order'):
+            self.assertContains(response, f'name="categories-0-{field}"')
+        self.assertContains(response, 'от 7 000 ₸')
 
     def test_contact_changelist_and_form(self):
         response = self.client.get(reverse('admin:contents_contact_changelist'))
@@ -391,6 +399,84 @@ class ServiceDetailTests(MediaTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.context['parent'])
         self.assertFalse(response.context['siblings'])
+
+
+class ServiceCatalogTests(MediaTestCase):
+    """Секция «Каталог»: категории с ценой «от», основной список и разделы."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.gifts = make_service(
+            'korporativnye-podarki', card_title='Корпоративные подарки', direction='production',
+            hero_button_text='Получить каталог', pdf_file=SimpleUploadedFile('gifts.pdf', b'%PDF-1.4'),
+        )
+        rows = [
+            ('', 'Текстиль', 'от 9 000 ₸', 30),
+            ('Еврокорзины', 'Базовый премиум', 'от 35 000 ₸', 40),
+            ('', 'Для рабочего стола', 'от 7 000 ₸', 10),
+            ('Еврокорзины', 'Эксклюзив', 'от 100 000 ₸', 60),
+            ('Наборы', 'Набор сотрудника', 'от 12 000 ₸', 50),
+            ('', 'Термосы', 'от 8 000 ₸', 20),
+        ]
+        for group, title, price, order in rows:
+            ServiceCategory.objects.create(
+                service=cls.gifts, group=group, title=title, price_from=price, order=order,
+                description=f'Описание: {title}',
+            )
+        cls.plain = make_service('obychnaya-usluga', card_title='Обычная услуга')
+
+    def get(self, service):
+        return self.client.get(reverse('contents:service_detail', args=[service.slug]))
+
+    def test_catalog_sections_in_order(self):
+        response = self.get(self.gifts)
+        self.assertEqual(response.status_code, 200)
+        sections = response.context['catalog']
+        self.assertEqual(
+            [(s['title'], [c.title for c in s['categories']]) for s in sections],
+            [('', ['Для рабочего стола', 'Термосы', 'Текстиль']),
+             ('Еврокорзины', ['Базовый премиум', 'Эксклюзив']),
+             ('Наборы', ['Набор сотрудника'])],
+        )
+        self.assertContains(response, 'id="catalog"')
+        self.assertContains(response, 'catalog-group', count=2)  # заголовки разделов, основной список без заголовка
+        html = response.content.decode()
+        positions = [html.index(text) for text in ('Для рабочего стола', 'Термосы', 'Текстиль', '>Еврокорзины<', 'Базовый премиум', '>Наборы<')]
+        self.assertEqual(positions, sorted(positions))
+        self.assertContains(response, 'от 100 000 ₸')
+        self.assertContains(response, 'Описание: Эксклюзив')
+
+    def test_catalog_after_about_before_partners(self):
+        ServiceAbout.objects.create(service=self.gifts, title='Зачем дарить', description='Текст')
+        html = self.get(self.gifts).content.decode()
+        self.assertLess(html.index('Зачем дарить'), html.index('id="catalog"'))
+        self.assertLess(html.index('id="catalog"'), html.index('id="partnersContainer"'))
+
+    def test_catalog_button_opens_form_with_pdf(self):
+        response = self.get(self.gifts)
+        self.assertContains(response, 'data-source="Кнопка под каталогом - Корпоративные подарки"')
+        self.assertContains(response, f'data-pdf-url="{self.gifts.pdf_file.url}"', count=2)  # hero и кнопка под каталогом
+
+    def test_page_without_categories_has_no_catalog(self):
+        response = self.get(self.plain)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['catalog'], [])
+        self.assertNotContains(response, 'id="catalog"')
+
+    def test_category_without_image_and_price(self):
+        category = ServiceCategory.objects.create(service=self.plain, title='Без картинки')
+        category.full_clean()
+        response = self.get(self.plain)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="catalog"')
+        self.assertContains(response, 'Без картинки')
+        self.assertNotContains(response, 'class="price-from"')
+
+    def test_category_image_compressed_to_webp(self):
+        category = ServiceCategory.objects.create(service=self.plain, title='С картинкой', image=png_file('cat.png'))
+        self.assertTrue(category.image.name.startswith('services/categories/'))
+        self.assertTrue(category.image.name.endswith('.webp'))
+        self.assertContains(self.get(self.plain), category.image.url)
 
 
 class ShellTests(MediaTestCase):

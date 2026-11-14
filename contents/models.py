@@ -311,6 +311,33 @@ class ServiceProgramItem(models.Model):
         return f"{self.label} — {self.title}"
 
 
+class ServiceCategory(models.Model):
+    """Категория каталога: раздел с ценой «от» на странице-направлении (товаров нет)"""
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        related_name='categories',
+        verbose_name='Услуга'
+    )
+    group = models.CharField(
+        'Раздел', max_length=200, blank=True,
+        help_text='Например: «Еврокорзины». Пусто — основной список каталога'
+    )
+    title = models.CharField('Название', max_length=200)
+    price_from = models.CharField('Цена от', max_length=100, blank=True, help_text='Строкой: «от 7 000 ₸»')
+    description = models.TextField('Описание', blank=True)
+    image = models.ImageField('Картинка', upload_to='services/categories/', blank=True)
+    order = models.IntegerField('Порядок', default=0)
+
+    class Meta:
+        verbose_name = 'Категория каталога'
+        verbose_name_plural = 'Категории каталога'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.group} / {self.title}" if self.group else self.title
+
+
 class ServiceLocation(models.Model):
     """Блок Место проведения"""
     service = models.OneToOneField(

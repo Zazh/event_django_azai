@@ -28,6 +28,18 @@ def group_by_direction(services):
     return groups
 
 
+def catalog_sections(service):
+    """Категории каталога: основной список (без раздела), затем разделы в порядке первого появления."""
+    sections = {}
+    for category in service.categories.all():
+        sections.setdefault(category.group.strip(), []).append(category)
+    main = sections.pop('', [])
+    return (
+        ([{'title': '', 'categories': main}] if main else [])
+        + [{'title': title, 'categories': categories} for title, categories in sections.items()]
+    )
+
+
 def home_page(request):
     """Главная страница"""
     # Дочерние страницы (концепции) в аккордеон не попадают — они внутри своего хаба
@@ -66,6 +78,7 @@ def service_detail(request, slug):
         'concepts': service.children.filter(is_active=True),
         'parent': parent,
         'siblings': siblings,
+        'catalog': catalog_sections(service),
     }
     return render(request, 'contents/service_detail.html', context)
 

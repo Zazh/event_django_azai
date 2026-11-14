@@ -3,7 +3,7 @@ from .models import (
     HeroBlock, AboutBlock, Benefit,
     Partner, PortfolioBlock, PortfolioItem, Case, Service,
     ServiceAbout, ServiceBenefit, ServiceItem, ServiceLocation, ServiceFormBlock,
-    ServiceGallery, ServicePartner, ServiceProgramItem,
+    ServiceCategory, ServiceGallery, ServicePartner, ServiceProgramItem,
     Contact, SocialNetwork,
 )
 
@@ -81,6 +81,13 @@ class ServiceProgramItemInline(admin.TabularInline):
     fields = ['label', 'title', 'description', 'order']
 
 
+# Inline для категорий каталога (страницы DN Production)
+class ServiceCategoryInline(admin.TabularInline):
+    model = ServiceCategory
+    extra = 1
+    fields = ['group', 'title', 'price_from', 'description', 'image', 'order']
+
+
 # Inline для ServiceLocation
 class ServiceLocationInline(admin.StackedInline):
     model = ServiceLocation
@@ -136,6 +143,7 @@ class ServiceAdmin(admin.ModelAdmin):
     # Добавляем галерею в inline блоки
     inlines = [
         ServiceAboutInline,
+        ServiceCategoryInline,
         ServiceItemInline,
         ServiceProgramItemInline,
         ServiceLocationInline,

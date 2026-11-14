@@ -9,7 +9,7 @@
 | `smoke.md` | все | `addresses` |
 | `layout.md` | каркас: шапка, модалка, боковое меню | `mobile-menu`, `modal-pdf-reset` |
 | `home.md` | главная | `sections`, `novelties`, `directions` |
-| `service.md` | страница услуги: хаб и концепции | `concept-request`, `hub-request`, `no-company` |
+| `service.md` | страница услуги: хаб и концепции | `concept-request`, `hub-request`, `no-company`, `blocked-window` |
 | `catalog.md` | страница-каталог DN Production | `catalog-request`, `sections`, `eurobaskets`, `admin-category` |
 | `services-list.md` | список услуг | `groups` |
 
@@ -22,7 +22,9 @@
   прода + `seed_season2027` (как развернуть — `memory/process/PROJECT.md#env` репо памяти).
 - Telegram на dev заглушён: заявка создаётся, в логе `backend` — `Telegram settings not
   configured`. Без этой строки в логе формы на dev **не отправлять**.
-- Админка — `/admin/`, локальные креды — `memory/secrets/dev-admin.md` репо памяти.
+- Админка — `/admin/`, локальные креды — `memory/secrets/dev-admin.md` репо памяти. Форму входа
+  расширение Claude in Chrome не отправляет (клик и Enter не доходят до сервера): поля заполняет
+  Claude, «Войти» нажимает владелец.
 
 ## Приёмы прогона
 
@@ -41,7 +43,6 @@
   блокируются тем же заголовком — `href` проверять, следующую страницу грузить так же.
 - **Прокрутка вбок**: `document.documentElement.scrollWidth` равен ширине окна. Бегущие ленты
   (`.auto-scroll`: галерея, клиенты) шире экрана по замыслу — их обрезает `overflow-hidden`.
-- **«Заявки нет»** проверять по базе, не перехватом `fetch`: GTM сам шлёт запросы.
+- **«Заявки нет»** проверять по базе, не перехватом `fetch`.
 - **Пустые карточки на скриншоте** — `loading="lazy"`: картинки грузятся при прокрутке.
-- GTM вшит в `base.html` без условия — визиты dev-стенда попадают в боевую аналитику (хвост
-  бэклога season-2027, до его закрытия — держать число прогонов минимальным).
+- GTM выводится только при `DEBUG=False` (SN-17): на dev-стенде его нет, в аналитику прогоны не попадают.

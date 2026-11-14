@@ -268,7 +268,7 @@ class SeedSeason2027Tests(MediaTestCase):
         merch = products.get(title='Корпоративная одежда и мерч')
         self.assertEqual(merch.link, reverse('contents:service_detail', args=['korporativnaya-odezhda-i-specodezhda']))
         response = self.client.get(reverse('contents:service_detail', args=[page.slug]))
-        self.assertContains(response, f'href="{merch.link}" class="concept-card-more')
+        self.assertContains(response, f'href="{merch.link}" class="catalog-card-cta"')
         self.assertContains(response, '>Рекламные услуги<')
 
     def test_kids_gifts_page_updated_in_place(self):
@@ -454,6 +454,7 @@ class ServiceDetailTests(MediaTestCase):
         self.assertContains(response, 'id="concepts"')
         self.assertContains(response, 'id="program"')
         self.assertContains(response, 'Как мы работаем')
+        self.assertNotContains(response, 'xl:columns-3')  # шаги — в ряд, не столбцами программы
         self.assertContains(response, 'theme-teleport')  # карточка несёт акцент концепции
         self.assertNotContains(response, 'id="other-concepts"')
         self.assertNotContains(response, 'skrytaya')
@@ -467,6 +468,7 @@ class ServiceDetailTests(MediaTestCase):
         self.assertContains(response, 'id="program"')
         self.assertContains(response, '18:00–19:00')
         self.assertContains(response, 'Тайминг предварительный')
+        self.assertContains(response, 'xl:columns-3')  # программа вечера — столбцами по времени
         self.assertContains(response, 'id="other-concepts"')
         self.assertContains(response, f'data-pdf-url="{self.legends.pdf_file.url}"')
         self.assertContains(response, 'Новинка 2027')
@@ -558,7 +560,15 @@ class ServiceCatalogTests(MediaTestCase):
     def test_catalog_button_opens_form_with_pdf(self):
         response = self.get(self.gifts)
         self.assertContains(response, 'data-source="Кнопка под каталогом - Корпоративные подарки"')
-        self.assertContains(response, f'data-pdf-url="{self.gifts.pdf_file.url}"', count=2)  # hero и кнопка под каталогом
+        # hero, кнопка под каталогом и кнопка «Рассчитать» каждой из шести карточек
+        self.assertContains(response, f'data-pdf-url="{self.gifts.pdf_file.url}"', count=2 + 6)
+
+    def test_category_card_button_names_category(self):
+        response = self.get(self.gifts)
+        # источник заявки и заголовок модалки (текст кнопки) называют категорию
+        self.assertContains(response, 'data-source="Категория: Термосы - Корпоративные подарки"')
+        self.assertContains(response, '<span class="sr-only">Рассчитать: Термосы</span>', html=False)
+        self.assertNotContains(response, 'Цена по запросу')
 
     def test_page_without_categories_has_no_catalog(self):
         response = self.get(self.plain)
@@ -573,7 +583,8 @@ class ServiceCatalogTests(MediaTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="catalog"')
         self.assertContains(response, 'Без картинки')
-        self.assertNotContains(response, 'class="price-from"')
+        self.assertNotContains(response, 'class="price-from')
+        self.assertContains(response, 'Цена по запросу')
 
     def test_category_image_compressed_to_webp(self):
         category = ServiceCategory.objects.create(service=self.plain, title='С картинкой', image=png_file('cat.png'))

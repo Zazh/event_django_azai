@@ -1,21 +1,30 @@
-{# Карточка категории каталога: тот же примитив, что concept_card.html, но без ссылки. Переменная — category. #}
+{# Карточка категории каталога — как карточка товара интернет-магазина: фото в плитке 4:3, название, описание, цена и кнопка расчёта. Переменные — category, service. #}
 {# На телефоне карточек две в ряд (~170 px): длинное слово («Гастрономические») переносится по слогам, не вылезая за карточку. #}
-<article class="concept-card flex flex-col h-full">
+<article class="catalog-card group flex flex-col h-full{% if not category.image %} rounded-2xl bg-gray-100 md:p-5 p-4{% endif %}">
   {% if category.image %}
-  <div class="relative aspect-video overflow-hidden">
-    <img src="{{ category.image.url }}" alt="{{ category.title }}" class="w-full h-full object-cover" loading="lazy">
+  <div class="aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100">
+    <img src="{{ category.image.url }}" alt="{{ category.title }}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" loading="lazy">
   </div>
   {% endif %}
-  <div class="flex flex-col grow max-md:hyphens-auto wrap-break-word{% if category.image %} pt-4{% endif %}">
-    <h3 class="text-xl md:text-2xl font-bold">{{ category.title }}</h3>
+  <div class="flex flex-col grow max-md:hyphens-auto wrap-break-word{% if category.image %} pt-3{% endif %}">
+    <h3 class="md:text-lg text-base font-bold leading-snug">{{ category.title }}</h3>
     {% if category.description %}
-    <p class="text-gray-500 text-sm leading-relaxed pt-2 pb-4">{{ category.description|linebreaksbr }}</p>
+    <p class="text-gray-500 text-sm leading-snug pt-1 line-clamp-3">{{ category.description|linebreaksbr }}</p>
     {% endif %}
-    {% if category.price_from or category.link %}
-    <div class="flex items-center justify-between gap-4 mt-auto pt-3 border-t border-gray-300">
-      {% if category.price_from %}<span class="price-from">{{ category.price_from }}</span>{% endif %}
-      {% if category.link %}<a href="{{ category.link }}" class="concept-card-more text-sm font-bold ml-auto whitespace-nowrap">Подробнее →</a>{% endif %}
+    <div class="flex items-center justify-between gap-2 mt-auto pt-3">
+      {% if category.price_from %}
+      <span class="price-from md:text-lg text-base font-bold leading-tight">{{ category.price_from }}</span>
+      {% else %}
+      <span class="text-sm text-gray-500 leading-tight">Цена по запросу</span>
+      {% endif %}
+      {% if category.link %}
+      <a href="{{ category.link }}" class="catalog-card-cta" title="Подробнее"><svg class="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg><span class="sr-only">Подробнее: {{ category.title }}</span></a>
+      {% else %}
+      <button type="button" class="catalog-card-cta" title="Рассчитать"
+              data-open-form
+              data-source="Категория: {{ category.title }} - {{ service.card_title }}"
+              {% if service.pdf_file %}data-pdf-url="{{ service.pdf_file.url }}"{% endif %}><svg class="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span class="sr-only">Рассчитать: {{ category.title }}</span></button>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 </article>

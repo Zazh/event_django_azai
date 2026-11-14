@@ -661,6 +661,14 @@ class ShellTests(MediaTestCase):
                 response = self.client.get(url)
                 self.assertContains(response, f'property="og:url" content="https://dananurzhumaevents.kz{url}"')
 
+    def test_styles_link_versioned_by_content(self):
+        # nginx прода кэширует /static/ как immutable на 30 дней — новый CSS = новый адрес
+        import hashlib
+        from django.contrib.staticfiles import finders
+        expected = hashlib.md5(Path(finders.find('dist/styles.css')).read_bytes()).hexdigest()[:10]
+        response = self.client.get(reverse('contents:home'))
+        self.assertContains(response, f'href="/static/dist/styles.css?v={expected}"')
+
     def test_gtm_only_without_debug(self):
         # dev-стенд (DEBUG=True) не пишет в боевую аналитику
         for debug, count in ((True, 0), (False, 2)):

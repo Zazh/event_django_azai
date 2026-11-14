@@ -1,4 +1,8 @@
+import hashlib
+from functools import lru_cache
+
 from django.conf import settings
+from django.contrib.staticfiles import finders
 
 from .constants import SEASON_HUB_SLUG
 from .models import Contact, Service
@@ -10,6 +14,21 @@ NAV_BY_URL_NAME = {
     'service_detail': 'services',
     'contacts': 'contacts',
 }
+
+
+@lru_cache(maxsize=1)
+def styles_version():
+    """Хеш собранного CSS для адреса `styles.css?v=…`.
+
+    nginx прода отдаёт /static/ с `immutable` на 30 дней, а имя файла без хеша: без версии
+    браузеры после выката месяц держат старый CSS. Считается раз на процесс — новый CSS
+    приходит с выкатом, а выкат пересоздаёт контейнер.
+    """
+    path = finders.find('dist/styles.css')
+    if not path:
+        return ''
+    with open(path, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()[:10]
 
 
 def site(request):
@@ -31,4 +50,5 @@ def site(request):
         'site_contact': Contact.objects.filter(is_active=True).first(),
         'nav_active': nav_active,
         'gtm_enabled': not settings.DEBUG,
+        'styles_version': styles_version(),
     }

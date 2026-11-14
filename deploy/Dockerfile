@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование requirements
-COPY requirements.txt .
+# Копирование requirements (живёт в репо кода — core/requirements.txt, SN-10)
+COPY core/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копирование проекта (исправлено на core)

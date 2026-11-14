@@ -35,7 +35,7 @@
     <link rel="icon" type="image/x-icon" href="{% static 'dist/images/favicon/favicon.ico' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'dist/images/favicon/favicon-32x32.png' %}">
 
-    <link rel="stylesheet" href="{% static 'dist/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/styles.css' %}?v={{ styles_version }}">
 
 
     {% block extra_meta %}{% endblock %}

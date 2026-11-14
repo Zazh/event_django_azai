@@ -271,6 +271,44 @@ class SeedSeason2027Tests(MediaTestCase):
         self.assertContains(response, f'href="{merch.link}" class="concept-card-more')
         self.assertContains(response, '>Рекламные услуги<')
 
+    def test_kids_gifts_page_updated_in_place(self):
+        page = make_service(
+            'detskie-novogodnie-podarki', card_title='Детские новогодние подарки', direction='production',
+            hero_button_text='Получить каталог', pdf_file=SimpleUploadedFile('prais-2026.pdf', b'%PDF-1.4 2026'),
+        )
+        card_image, original_pk = page.card_image.name, page.pk
+        about = ServiceAbout.objects.create(service=page, title='Не просто подарки', description='2026')
+        for number, title in [('1000+', 'Корпоративных клиентов'), ('5', 'Компонентов в наборе'),
+                              ('700 г', 'Вес кулька с конфетами'), ('4', 'Видов конфет')]:
+            ServiceBenefit.objects.create(service_about=about, number=number, title=title)
+        page.items.create(title='Подарочные наборы', description='Под ключ', svg_path='<svg></svg>')
+        page.gallery.create(image=png_file('g.png'), title='Фото', description='Фото')
+        self.run_seed()
+        pages = Service.objects.filter(slug='detskie-novogodnie-podarki')
+        self.assertEqual(pages.count(), 1)
+        page = pages.get()
+        self.assertEqual(page.pk, original_pk)
+        self.assertEqual((page.direction, page.order), ('production', 20))
+        self.assertIn('2027', page.hero_title)
+        self.assertEqual(page.card_image.name, card_image)  # карточка-картинка прежняя
+        self.assertIn('prais-2026', page.pdf_file.name)  # без --pdf-dir PDF не трогается
+        self.assertEqual(page.items.exclude(svg_path='').count(), 1)  # пункты с иконками остались
+        self.assertEqual(page.gallery.count(), 1)
+        numbers = list(page.about.benefits.values_list('number', flat=True))
+        self.assertEqual(numbers, ['40+', '12', '16', '102'])  # цифр каталога 2026 нет
+        sets = page.categories.filter(group='Готовые наборы')
+        self.assertGreaterEqual(sets.count(), 9)
+        self.assertFalse(sets.filter(price_from='').exists())
+        self.assertGreaterEqual(page.categories.filter(group='').count(), 10)
+        texts = ' '.join([
+            page.hero_title, page.hero_subtitle, page.card_description, page.seo_description,
+            page.about.title, page.about.description,
+            *(f'{c.title} {c.price_from} {c.description}' for c in page.categories.all()),
+        ]).lower()
+        for word in ('прошлогодн', 'надбавк', '2026'):
+            self.assertNotIn(word, texts)
+        self.assertIn('создано 0, обновлено 0', self.run_seed())
+
     def test_second_run_changes_nothing(self):
         self.run_seed()
         before = self.row_counts()

@@ -181,6 +181,8 @@ class Command(BaseCommand):
         created = service is None
         if created:
             service = Service(slug=spec['slug'])
+            if 'create_image' in spec:
+                service.card_image = seed_image(spec['create_image'])
         changed = set_fields(service, {**data.CATALOG_COMMON, **spec['fields']})
         if 'card_image' in spec and not image_matches(service.card_image, spec['card_image']):
             service.card_image = seed_image(spec['card_image'])  # прежний файл остаётся в медиа

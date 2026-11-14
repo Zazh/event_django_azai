@@ -123,7 +123,7 @@
 <section class="pt-9 pb-12">
     <div class="grid grid-cols-12 gap-4 px-4 py-6">
       <div class="lg:col-span-4 col-span-full">
-        <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">{% if parent %}Фишки{% elif catalog %}Условия{% else %}Услуги{% endif %}</span>
+        <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">{% if parent %}Фишки{% elif service.service_title|slice:':7' == 'Условия' %}Условия{% else %}Услуги{% endif %}</span>
       </div>
       <div class="lg:col-span-8 col-span-full">
         <h1 class="md:text-4xl md:leading-11 text-3xl font-semibold">{{ service.service_title|safe }}</h1>

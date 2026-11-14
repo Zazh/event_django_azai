@@ -208,6 +208,42 @@ class SeedSeason2027Tests(MediaTestCase):
                 for row in [*concept.items.all(), *concept.program.all(), *concept.gallery.all()]:
                     row.full_clean()
 
+    def test_catalog_pages_valid(self):
+        self.run_seed()
+        for spec in seed_data.CATALOGS:
+            page = Service.objects.get(slug=spec['slug'])
+            with self.subTest(page=page.slug):
+                self.assertEqual(page.direction, 'production')
+                self.assertIsNone(page.parent)
+                self.assertFalse(page.badge)  # иначе каталог попадёт в новинки на главной
+                self.assertFalse(page.accent)
+                self.assertTrue(page.categories.exists())
+                self.assertEqual(page.form_block.button_text, page.hero_button_text)
+                # админка должна суметь сохранить всё, что завёл сид
+                page.full_clean()
+                page.about.full_clean()
+                page.form_block.full_clean()
+                for row in [*page.categories.all(), *page.items.all(), *page.program.all()]:
+                    row.full_clean()
+                for category in page.categories.exclude(image=''):
+                    self.assertTrue(category.image.name.endswith('.webp'), category.image.name)
+                for benefit in page.about.benefits.all():  # их подменил бы seed_service_stats
+                    self.assertNotIn(benefit.number, [*seed_data.SERVICE_STAT_REPLACEMENTS, '282'])
+
+    def test_corporate_gifts_catalog(self):
+        self.run_seed()
+        page = Service.objects.get(slug='korporativnye-podarki')
+        self.assertEqual(page.order, 10)
+        self.assertGreaterEqual(page.categories.filter(group='').count(), 10)
+        self.assertEqual(
+            list(page.categories.filter(group='Еврокорзины').values_list('title', 'price_from')),
+            [('Базовый премиум', 'от 35 000 ₸'), ('Оптимальный выбор', 'от 50 000 ₸'), ('Эксклюзив', 'от 100 000 ₸')],
+        )
+        self.assertEqual(page.service_title, 'Условия заказа')
+        self.assertEqual(page.program_title, 'Как запускаем заказ')
+        self.assertEqual([step.label for step in page.program.all()], ['01', '02', '03', '04'])
+        self.assertEqual(page.hero_button_text, 'Получить каталог')
+
     def test_second_run_changes_nothing(self):
         self.run_seed()
         before = self.row_counts()
@@ -578,6 +614,7 @@ class PublicPagesContentTests(MediaTestCase):
             reverse('contents:home'), reverse('contents:services_list'), reverse('contents:contacts'),
             reverse('contents:service_detail', args=[SEASON_HUB_SLUG]),
             *(reverse('contents:service_detail', args=[slug]) for slug in ('legends', 'teleport-2037', 'immersive-show')),
+            *(reverse('contents:service_detail', args=[spec['slug']]) for spec in seed_data.CATALOGS),
         ]
         for url in urls:
             with self.subTest(url=url):

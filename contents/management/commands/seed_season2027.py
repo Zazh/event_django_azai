@@ -1,8 +1,9 @@
-"""Сид сезона 2026–2027: хаб «Новый год 2027», три концепции, цифры, главная, контакты.
+"""Сид сезона 2026–2027: хаб «Новый год 2027», три концепции, каталоги DN Production, цифры,
+главная, контакты.
 
     python manage.py seed_season2027 [--pdf-dir <каталог с PDF заказчицы>]
 
-Идемпотентна: второй запуск подряд ничего не меняет. Страницы концепций принадлежат сиду —
+Идемпотентна: второй запуск подряд ничего не меняет. Страницы концепций и каталогов принадлежат сиду —
 повторный запуск возвращает их к состоянию из репо (правки админки на них перезаписываются),
 поэтому после релиза команду не запускать. На dev-стенде запускать в контейнере: медиа — том.
 """
@@ -17,7 +18,7 @@ from django.db import transaction
 
 from contents.models import (
     AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
-    ServiceFormBlock, ServiceGallery, ServiceItem, ServiceProgramItem,
+    ServiceCategory, ServiceFormBlock, ServiceGallery, ServiceItem, ServiceProgramItem,
 )
 from contents.seed import season2027 as data
 
@@ -62,6 +63,11 @@ def image_matches(field_file, seed_name):
     )
 
 
+def image_same(field_file, seed_name):
+    """Как image_matches, но пустая картинка сида совпадает только с пустым полем."""
+    return image_matches(field_file, seed_name) if seed_name else not field_file
+
+
 def find_file(directory, name):
     """Файл по имени без учёта нормализации юникода (macOS хранит «й» как «и» + бреве)."""
     wanted = unicodedata.normalize('NFC', name)
@@ -82,7 +88,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--pdf-dir',
-            help='Каталог с PDF-презентациями концепций. Не задан — PDF не трогаются.',
+            help='Каталог с PDF заказчицы (презентации, каталоги). Не задан — PDF не трогаются.',
         )
 
     def handle(self, *args, **options):
@@ -95,6 +101,8 @@ class Command(BaseCommand):
             hub = self.seed_hub()
             for concept in data.CONCEPTS:
                 self.seed_concept(concept, hub)
+            for catalog in data.CATALOGS:
+                self.seed_catalog(catalog)
             self.seed_placement()
             self.pin_stats_order()
             self.seed_service_stats()
@@ -164,6 +172,28 @@ class Command(BaseCommand):
         self.sync_gallery(service, spec['gallery'])
         self.sync_form(service, spec['form'])
 
+    # --- каталоги DN Production --------------------------------------------------------
+
+    def seed_catalog(self, spec):
+        """Страница-каталог: как концепция, но без родителя и галереи; блоки — только заданные."""
+        service = Service.objects.filter(slug=spec['slug']).first()
+        created = service is None
+        if created:
+            service = Service(slug=spec['slug'])
+        changed = set_fields(service, {**data.CATALOG_COMMON, **spec['fields']})
+        if 'card_image' in spec and not image_matches(service.card_image, spec['card_image']):
+            service.card_image = seed_image(spec['card_image'])  # прежний файл остаётся в медиа
+            changed.append('card_image')
+        if self.attach_pdf(service, *spec['pdf']):
+            changed.append('pdf_file')
+        if created or changed:
+            service.save()
+            self.mark(f'страница {service.slug}' + ('' if created else f': {", ".join(changed)}'), created)
+
+        for block in ('about', 'categories', 'items', 'program', 'form'):
+            if block in spec:
+                getattr(self, f'sync_{block}')(service, spec[block])
+
     def attach_pdf(self, service, source_name, clean_name):
         """Прикрепляет PDF под чистым именем; True — файл страницы изменился."""
         if not self.pdf_dir:
@@ -206,7 +236,7 @@ class Command(BaseCommand):
             ServiceBenefit(service_about=about, number=number, title=title, order=order)
             for number, title, order in benefits
         ])
-        self.mark(f'{service.slug}: о концепции и цифры')
+        self.mark(f'{service.slug}: блок «О нас» и цифры')
 
     def sync_items(self, service, rows):
         desired = ordered(rows)
@@ -218,7 +248,7 @@ class Command(BaseCommand):
             ServiceItem(service=service, title=title, description=description, order=order)
             for title, description, order in desired
         ])
-        self.mark(f'{service.slug}: ключевые фишки')
+        self.mark(f'{service.slug}: пункты услуги')
 
     def sync_program(self, service, rows):
         desired = ordered(rows)
@@ -231,6 +261,29 @@ class Command(BaseCommand):
             for label, title, description, order in desired
         ])
         self.mark(f'{service.slug}: шаги программы')
+
+    def sync_categories(self, service, rows):
+        desired = ordered(rows)
+        existing = list(service.categories.order_by('order', 'id'))
+        same = len(existing) == len(desired) and all(
+            image_same(row.image, image)
+            and (row.group, row.title, row.price_from, row.description, row.order)
+            == (group, title, price, description, order)
+            for row, (group, title, price, description, image, order) in zip(existing, desired)
+        )
+        if same:
+            return
+        for row in existing:
+            if row.image:
+                row.image.delete(save=False)
+            row.delete()
+        for group, title, price, description, image, order in desired:
+            # по одной: картинку пережимает сигнал pre_save
+            ServiceCategory.objects.create(
+                service=service, group=group, title=title, price_from=price,
+                description=description, image=seed_image(image) if image else '', order=order,
+            )
+        self.mark(f'{service.slug}: категории каталога')
 
     def sync_gallery(self, service, rows):
         desired = ordered(rows)
@@ -257,8 +310,8 @@ class Command(BaseCommand):
     def sync_form(self, service, spec):
         values = {
             'title': spec['title'],
-            'subtitle': data.FORM_SUBTITLE,
-            'button_text': data.PRESENTATION_BUTTON,
+            'subtitle': spec.get('subtitle', data.FORM_SUBTITLE),
+            'button_text': spec.get('button_text', data.PRESENTATION_BUTTON),
             'is_active': True,
         }
         form = ServiceFormBlock.objects.filter(service=service).first()

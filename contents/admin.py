@@ -85,7 +85,7 @@ class ServiceProgramItemInline(admin.TabularInline):
 class ServiceCategoryInline(admin.TabularInline):
     model = ServiceCategory
     extra = 1
-    fields = ['group', 'title', 'price_from', 'description', 'image', 'order']
+    fields = ['group', 'title', 'price_from', 'description', 'image', 'link', 'order']
 
 
 # Inline для ServiceLocation

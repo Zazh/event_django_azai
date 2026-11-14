@@ -327,6 +327,10 @@ class ServiceCategory(models.Model):
     price_from = models.CharField('Цена от', max_length=100, blank=True, help_text='Строкой: «от 7 000 ₸»')
     description = models.TextField('Описание', blank=True)
     image = models.ImageField('Картинка', upload_to='services/categories/', blank=True)
+    link = models.CharField(
+        'Ссылка', max_length=200, blank=True,
+        help_text='Страница сайта с подробностями, например /services/korporativnaya-odezhda-i-specodezhda/'
+    )
     order = models.IntegerField('Порядок', default=0)
 
     class Meta:

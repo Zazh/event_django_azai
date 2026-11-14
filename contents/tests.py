@@ -253,6 +253,24 @@ class SeedSeason2027Tests(MediaTestCase):
         self.assertIn('100', page.items.first().title)  # первое условие — тираж от 100 штук
         self.assertFalse(page.program.exists())
 
+    def test_branded_products_catalog(self):
+        self.run_seed()
+        page = Service.objects.get(slug='brendirovannaya-produkciya-i-snabzhenie-ofisa')
+        self.assertEqual(page.order, 40)
+        self.assertEqual(page.hero_button_text, 'Получить прайс')
+        products = page.categories.filter(group='')
+        self.assertTrue(products.exists())
+        self.assertTrue(all('без НДС' in c.price_from for c in products))
+        self.assertTrue(page.categories.filter(group='Рекламные услуги').exists())
+        self.assertIn('Абонентское', page.items.first().title)
+        self.assertEqual(page.program_title, 'Как мы работаем')
+        # мерч — одной категорией со ссылкой на страницу одежды
+        merch = products.get(title='Корпоративная одежда и мерч')
+        self.assertEqual(merch.link, reverse('contents:service_detail', args=['korporativnaya-odezhda-i-specodezhda']))
+        response = self.client.get(reverse('contents:service_detail', args=[page.slug]))
+        self.assertContains(response, f'href="{merch.link}" class="concept-card-more')
+        self.assertContains(response, '>Рекламные услуги<')
+
     def test_second_run_changes_nothing(self):
         self.run_seed()
         before = self.row_counts()

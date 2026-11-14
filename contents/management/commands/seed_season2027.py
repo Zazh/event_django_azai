@@ -15,6 +15,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.urls import reverse
 
 from contents.models import (
     AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
@@ -263,13 +264,17 @@ class Command(BaseCommand):
         self.mark(f'{service.slug}: шаги программы')
 
     def sync_categories(self, service, rows):
-        desired = ordered(rows)
+        # строка: (раздел, название, цена, описание, картинка[, слаг страницы для ссылки])
+        desired = ordered([
+            (*row[:5], reverse('contents:service_detail', args=[row[5]]) if len(row) > 5 else '')
+            for row in rows
+        ])
         existing = list(service.categories.order_by('order', 'id'))
         same = len(existing) == len(desired) and all(
             image_same(row.image, image)
-            and (row.group, row.title, row.price_from, row.description, row.order)
-            == (group, title, price, description, order)
-            for row, (group, title, price, description, image, order) in zip(existing, desired)
+            and (row.group, row.title, row.price_from, row.description, row.link, row.order)
+            == (group, title, price, description, link, order)
+            for row, (group, title, price, description, image, link, order) in zip(existing, desired)
         )
         if same:
             return
@@ -277,11 +282,11 @@ class Command(BaseCommand):
             if row.image:
                 row.image.delete(save=False)
             row.delete()
-        for group, title, price, description, image, order in desired:
+        for group, title, price, description, image, link, order in desired:
             # по одной: картинку пережимает сигнал pre_save
             ServiceCategory.objects.create(
-                service=service, group=group, title=title, price_from=price,
-                description=description, image=seed_image(image) if image else '', order=order,
+                service=service, group=group, title=title, price_from=price, description=description,
+                image=seed_image(image) if image else '', link=link, order=order,
             )
         self.mark(f'{service.slug}: категории каталога')
 

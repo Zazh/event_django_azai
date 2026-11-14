@@ -10,9 +10,10 @@
     {% if category.description %}
     <p class="text-gray-500 text-sm leading-relaxed pt-2 pb-4">{{ category.description|linebreaksbr }}</p>
     {% endif %}
-    {% if category.price_from %}
+    {% if category.price_from or category.link %}
     <div class="flex items-center justify-between gap-4 mt-auto pt-3 border-t border-gray-300">
-      <span class="price-from">{{ category.price_from }}</span>
+      {% if category.price_from %}<span class="price-from">{{ category.price_from }}</span>{% endif %}
+      {% if category.link %}<a href="{{ category.link }}" class="concept-card-more text-sm font-bold ml-auto whitespace-nowrap">Подробнее →</a>{% endif %}
     </div>
     {% endif %}
   </div>

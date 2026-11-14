@@ -124,8 +124,11 @@ class Command(BaseCommand):
         created = hub is None
         if created:
             hub = Service(slug=spec['slug'], **spec['create_defaults'])
-            hub.card_image = seed_image(spec['create_image'])
         changed = set_fields(hub, {**spec['fields'], 'parent_id': None})
+        if not image_matches(hub.card_image, spec['card_image']):
+            # прежняя картинка (маски 2026) остаётся в медиа, ссылка на неё снимается
+            hub.card_image = seed_image(spec['card_image'])
+            changed.append('card_image')
         if hub.pdf_file:
             # PDF «Новый год 2026» снимается; файл на диске остаётся
             hub.pdf_file = None

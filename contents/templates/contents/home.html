@@ -23,67 +23,62 @@
                 <a href="{% url 'contents:service_detail' season_hub.slug %}" class="btn-outline">Смотреть концепции</a>
                 {% endif %}
             </div>
-            <div class="flex justify-center py-8 px-4">
-                <div class="relative rounded-[28px] overflow-hidden w-full max-w-screen-xl">
-                    <!-- Image cover -->
-                    <img    id="caseImage"
-                            src=""
-                            alt="Кейс"
-                            class="case-image w-full h-[620px] md:h-[520px] object-cover"/>
-
-                    <!-- Case content -->
-                    <div class="bg-white absolute bottom-6 w-[90%] ml-[5%] md:ml-0 md:bottom-8 md:left-8 md:w-full max-w-md rounded-2xl">
-                        <div class="md:p-8 p-6 case-content">
-                            <span class="text-gray-500 text-accent-500 text-sm tracking-widest">КЕЙС</span>
-
-                            <div class="md:pt-12 pt-8 pb-4">
-                                <h2 id="caseTitle" class="font-bold md:text-2xl text-xl"></h2>
-                                <p id="caseDescription" class="text-gray-500 py-4 text-sm md:leading-5"></p>
-                            </div>
-                            <div class="pb-4 flex justify-between">
-                                <button id="caseDetailsBtn" class="btn-link text-accent-500" data-open-form data-source="Главная Блок Кейсы">Подробнее</button>
-
-                                <div class="flex gap-2">
-                                    <button id="prevCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
-                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12.5 15L7.5 10L12.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
-                                    <button id="nextCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
-                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M7.5 15L12.5 10L7.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Индикатор слайдов -->
-                            <div class="flex gap-2 justify-center pt-2">
-                                <div id="caseIndicators" class="flex gap-2"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Новинки 2027 (услуги с бейджем) — карточки под кнопками hero -->
+            {% if novelties %}
+            <div id="novelties" class="grid md:grid-cols-3 grid-cols-1 gap-x-6 gap-y-10 max-w-screen-xl mx-auto px-4 pt-4 pb-12">
+                {% for concept in novelties %}
+                    {% include 'contents/includes/concept_card.html' %}
+                {% endfor %}
             </div>
+            {% endif %}
         </div>
     </section>
     {% endif %}
 
 
-    <!-- NOVELTIES BLOCK: услуги с бейджем («Новинка 2027») -->
-    {% if novelties %}
-    <section id="novelties" class="py-12">
-        <div class="grid grid-cols-12 gap-4 px-4">
-            <div class="lg:col-span-4 col-span-full">
-                <span class="text-gray-500 text-xl uppercase font-semibold tracking-wider">Новинки 2027</span>
-            </div>
-            <div class="lg:col-span-8 col-span-full">
-                <h2 class="md:text-4xl md:leading-11 text-3xl font-semibold">Новое в сезоне 2026–2027</h2>
-            </div>
-            <div class="col-span-full grid md:grid-cols-3 grid-cols-1 gap-x-6 gap-y-10 pt-8">
-                {% for concept in novelties %}
-                    {% include 'contents/includes/concept_card.html' %}
-                {% endfor %}
+    <!-- CASES BLOCK: слайдер кейсов -->
+    {% if cases %}
+    <section id="cases" class="py-12">
+        <div class="flex justify-center px-4">
+            <div class="relative rounded-[28px] overflow-hidden w-full max-w-screen-xl">
+                <!-- Image cover -->
+                <img    id="caseImage"
+                        src=""
+                        alt="Кейс"
+                        class="case-image w-full h-[620px] md:h-[520px] object-cover"/>
+
+                <!-- Case content -->
+                <div class="bg-white absolute bottom-6 w-[90%] ml-[5%] md:ml-0 md:bottom-8 md:left-8 md:w-full max-w-md rounded-2xl">
+                    <div class="md:p-8 p-6 case-content">
+                        <span class="text-gray-500 text-accent-500 text-sm tracking-widest">КЕЙС</span>
+
+                        <div class="md:pt-12 pt-8 pb-4">
+                            <h2 id="caseTitle" class="font-bold md:text-2xl text-xl"></h2>
+                            <p id="caseDescription" class="text-gray-500 py-4 text-sm md:leading-5"></p>
+                        </div>
+                        <div class="pb-4 flex justify-between">
+                            <button id="caseDetailsBtn" class="btn-link text-accent-500" data-open-form data-source="Главная Блок Кейсы">Подробнее</button>
+
+                            <div class="flex gap-2">
+                                <button id="prevCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12.5 15L7.5 10L12.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button id="nextCase" class="size-12 rounded-full bg-gray-200 hover:bg-gray-300 transition flex items-center justify-center">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M7.5 15L12.5 10L7.5 5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Индикатор слайдов -->
+                        <div class="flex gap-2 justify-center pt-2">
+                            <div id="caseIndicators" class="flex gap-2"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

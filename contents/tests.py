@@ -16,7 +16,7 @@ from PIL import Image
 
 from .constants import SEASON_HUB_SLUG
 from .models import (
-    AboutBlock, Benefit, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
+    AboutBlock, Benefit, Case, Contact, HeroBlock, Service, ServiceAbout, ServiceBenefit,
     ServiceCategory, ServiceFormBlock, ServiceProgramItem,
 )
 from .seed import season2027 as seed_data
@@ -262,7 +262,9 @@ class SeedSeason2027Tests(MediaTestCase):
         hub.refresh_from_db()
         self.assertFalse(hub.pdf_file)
         self.assertEqual(hub.card_title, 'Новый год 2027 — корпоратив под ключ')
-        self.assertEqual(hub.card_description, 'Прежнее описание')
+        # карточка хаба: описание — подзаголовок хаба, картинка — три концепции
+        self.assertEqual(hub.card_description, seed_data.HUB['fields']['card_description'])
+        self.assertIn('season-hub-card', hub.card_image.name)
         self.assertEqual(hub.items.count(), 1)
         self.assertEqual(hub.price_from, 'от 6 000 000 ₸')
 
@@ -600,6 +602,7 @@ class HomeAndServicesListTests(MediaTestCase):
         cls.teambuilding = make_service('korporativy-i-timbildingi', card_title='Тимбилдинги', order=20)
 
     def test_home_novelties_and_groups(self):
+        HeroBlock.objects.create(title='Новый год 2027', subtitle='Три сценария', button_text='Заявка', button_link='главная')
         response = self.client.get(reverse('contents:home'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context['novelties']), self.concepts)
@@ -622,6 +625,26 @@ class HomeAndServicesListTests(MediaTestCase):
         response = self.client.get(reverse('contents:home'))
         self.assertContains(response, 'class="btn-outline">Смотреть концепции</a>')
         self.assertContains(response, 'Dana Nurzhuma Events</h3>')
+
+    def test_home_hero_cards_then_case_slider(self):
+        HeroBlock.objects.create(title='Новый год 2027', subtitle='Три сценария', button_text='Заявка', button_link='главная')
+        Case.objects.create(title='Кейс', description='Описание', button_text='Подробнее', image=png_file('case.png'))
+        html = self.client.get(reverse('contents:home')).content.decode()
+        # карточки новинок — в hero под кнопками, слайдер кейсов — отдельной секцией ниже
+        hero = html[html.index('<section class="hero">'):html.index('</section>')]
+        self.assertIn('Смотреть концепции', hero)
+        self.assertIn('id="novelties"', hero)
+        self.assertEqual(hero.count('<article class="concept-card'), 3)
+        self.assertNotIn('caseImage', hero)
+        self.assertLess(html.index('id="novelties"'), html.index('id="cases"'))
+        self.assertIn('id="caseImage"', html[html.index('id="cases"'):])
+        self.assertEqual(html.count('<article class="concept-card'), 3)  # карточки не дублируются
+
+    def test_home_without_cases_has_no_slider(self):
+        HeroBlock.objects.create(title='Новый год 2027', subtitle='Три сценария', button_text='Заявка', button_link='главная')
+        response = self.client.get(reverse('contents:home'))
+        self.assertNotContains(response, 'id="cases"')
+        self.assertNotContains(response, 'id="caseImage"')
 
     def test_home_without_novelties_has_no_block(self):
         Service.objects.filter(parent=self.hub).update(show_on_homepage=False)

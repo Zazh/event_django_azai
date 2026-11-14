@@ -482,10 +482,19 @@ class ServiceDetailTests(MediaTestCase):
         self.assertContains(response, 'О КОНЦЕПЦИИ')
         self.assertContains(response, 'Фишки')
 
+    def test_pdf_link_fallback_when_popup_blocked(self):
+        # Safari на iPhone блокирует window.open не по нажатию — в сообщении об успехе есть ссылка
+        response = self.get(self.legends)
+        self.assertContains(response, 'id="successPdfLink"')  # модалка (base.html)
+        self.assertContains(
+            response, f'<div id="serviceFormPdfLink" class="hidden mt-4"><a href="{self.legends.pdf_file.url}"'
+        )
+
     def test_concept_without_pdf_has_no_pdf_attribute(self):
         response = self.get(self.teleport)
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'data-pdf-url="/')
+        self.assertNotContains(response, 'id="serviceFormPdfLink"')
 
     def test_plain_service_has_no_season_sections(self):
         response = self.get(self.plain)

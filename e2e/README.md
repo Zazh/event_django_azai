@@ -32,6 +32,8 @@
   `/media/services/pdfs/…pdf`; для «PDF не открылся» — до клика обернуть `window.open` в консоли
   (`const o=window.open; window.__opened=[]; window.open=(u,t)=>{__opened.push(u); return
   o(u,t)}`) и смотреть `__opened` через 3 с после отправки.
+  Браузер заблокировал окно (Safari на iPhone; эмуляция — до клика `window.open=()=>null`): в
+  сообщении об успехе ссылка «Открыть документ» на тот же PDF, модалка не закрывается сама.
 - **Ширина 393 (телефон).** Окно Chrome уже ~500 px не сужается, а iframe с адресом сайта
   блокирует `X-Frame-Options: DENY`. Работает `srcdoc`: на любой странице сайта заменить `body`
   на `<iframe>` шириной 393 и положить в `srcdoc` HTML страницы, полученный `fetch`, с

@@ -204,6 +204,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div id="successMessage" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
             Заявка успешно отправлена!
+            <!-- браузер заблокировал окно с PDF (Safari на iPhone) — ссылка по нажатию -->
+            <div id="successPdfLink" class="hidden mt-4">
+                <a href="#" target="_blank" rel="noopener" class="font-semibold" style="text-decoration: underline">Открыть документ</a>
+            </div>
         </div>
     </div>
 </div>
@@ -330,6 +334,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const closeFormBtn = document.getElementById('closeFormBtn');
     const requestForm = document.getElementById('requestForm');
     const successMessage = document.getElementById('successMessage');
+    const successPdfLink = document.getElementById('successPdfLink');
     const formSource = document.getElementById('formSource');
     const formPdfUrl = document.getElementById('formPdfUrl');
     const formModalTitle = document.getElementById('formModalTitle');
@@ -362,6 +367,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         if (requestForm) requestForm.reset();
         if (successMessage) successMessage.classList.add('hidden');
+        if (successPdfLink) successPdfLink.classList.add('hidden');
 
         // Возвращаем заголовок по умолчанию
         if (formModalTitle) {
@@ -433,11 +439,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     }
                     requestForm.reset();
 
-                    // Если есть PDF - открываем его и закрываем модалку
+                    // Если есть PDF - открываем его и закрываем модалку. Safari (iPhone) окно,
+                    // открытое не по нажатию, блокирует (open → null): тогда ссылка в сообщении
                     if (pdfUrl) {
                         setTimeout(() => {
-                            window.open(pdfUrl, '_blank');
-                            closeFormModal();
+                            if (window.open(pdfUrl, '_blank')) {
+                                closeFormModal();
+                            } else if (successPdfLink) {
+                                const link = successPdfLink.querySelector('a');
+                                link.href = pdfUrl;
+                                link.onclick = () => setTimeout(closeFormModal, 0);
+                                successPdfLink.classList.remove('hidden');
+                            }
                         }, 1500);
                     } else {
                         // Если PDF нет - просто закрываем через 2 секунды

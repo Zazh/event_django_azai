@@ -231,6 +231,7 @@
                     <!-- Сообщение об успехе -->
                     <div id="serviceFormSuccess" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
                         Заявка успешно отправлена!{% if service.pdf_file %} Документ откроется в новой вкладке.{% else %} Мы свяжемся с вами в ближайшее время.{% endif %}
+                        {% if service.pdf_file %}<div id="serviceFormPdfLink" class="hidden mt-4"><a href="{{ service.pdf_file.url }}" target="_blank" rel="noopener" class="font-semibold" style="text-decoration: underline">Открыть документ</a></div>{% endif %}
                     </div>
 
                     <!-- Сообщение об ошибке -->
@@ -261,9 +262,11 @@
                 const successMsg = document.getElementById('serviceFormSuccess');
                 const errorMsg = document.getElementById('serviceFormError');
                 const pdfUrl = this.dataset.pdfUrl || '';
+                const pdfLink = document.getElementById('serviceFormPdfLink');
 
                 // Скрываем предыдущие сообщения
                 successMsg.classList.add('hidden');
+                if (pdfLink) pdfLink.classList.add('hidden');
                 errorMsg.classList.add('hidden');
 
                 // Блокируем кнопку
@@ -277,8 +280,6 @@
                     company: this.querySelector('[name="company"]').value,
                     source: 'Услуга: ' + this.dataset.serviceName + ' - Форма на странице'
                 };
-
-                console.log('PDF URL:', pdfUrl); // Отладка
 
                 try {
                     const response = await fetch('/api/feedback/submit/', {
@@ -299,17 +300,17 @@
                         // Прокручиваем к сообщению
                         successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                        // Если есть PDF - открываем его
+                        // Если есть PDF - открываем его и через 1,5 с скрываем сообщение. Safari
+                        // (iPhone) окно, открытое не по нажатию, блокирует (open → null): тогда
+                        // сообщение остаётся со ссылкой на документ
                         if (pdfUrl) {
-                            console.log('Открываем PDF:', pdfUrl);
                             setTimeout(() => {
-                                window.open(pdfUrl, '_blank');
+                                if (window.open(pdfUrl, '_blank')) {
+                                    setTimeout(() => successMsg.classList.add('hidden'), 1500);
+                                } else if (pdfLink) {
+                                    pdfLink.classList.remove('hidden');
+                                }
                             }, 1500);
-
-                            // Скрываем сообщение через 3 секунды
-                            setTimeout(() => {
-                                successMsg.classList.add('hidden');
-                            }, 3000);
                         } else {
                             // Если PDF нет - скрываем через 5 секунд
                             setTimeout(() => {
